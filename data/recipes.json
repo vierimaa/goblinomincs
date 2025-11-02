@@ -1,0 +1,105 @@
+{
+  "recipes": [
+    {
+      "id": 13457,
+      "name": "Greater Fire Protection Potion",
+      "reagents": [
+        { "id": 13466, "name": "Plaguebloom", "quantity": 1 },
+        { "id": 13464, "name": "Golden Sansam", "quantity": 1 },
+        { "id": 13423, "name": "Stonescale Oil", "quantity": 1 },
+        { "id": 3371, "name": "Crystal Vial", "quantity": 1 }
+      ]
+    },
+    {
+      "id": 13461,
+      "name": "Greater Arcane Protection Potion",
+      "reagents": [
+        { "id": 13463, "name": "Dreamfoil", "quantity": 1 },
+        { "id": 13467, "name": "Icecap", "quantity": 1 },
+        { "id": 13423, "name": "Stonescale Oil", "quantity": 1 },
+        { "id": 3371, "name": "Crystal Vial", "quantity": 1 }
+      ]
+    },
+    {
+      "id": 13455,
+      "name": "Greater Stoneshield Potion",
+      "reagents": [
+        { "id": 13464, "name": "Golden Sansam", "quantity": 1 },
+        { "id": 13423, "name": "Stonescale Oil", "quantity": 1 },
+        { "id": 3371, "name": "Crystal Vial", "quantity": 1 }
+      ]
+    },
+    {
+      "id": 13452,
+      "name": "Elixir of the Mongoose",
+      "reagents": [
+        { "id": 8846, "name": "Gromsblood", "quantity": 2 },
+        { "id": 13466, "name": "Plaguebloom", "quantity": 2 },
+        { "id": 3371, "name": "Crystal Vial", "quantity": 1 }
+      ]
+    },
+    {
+      "id": 13447,
+      "name": "Elixir of the Sages",
+      "reagents": [
+        { "id": 13465, "name": "Mountain Silversage", "quantity": 2 },
+        { "id": 13463, "name": "Dreamfoil", "quantity": 1 },
+        { "id": 3371, "name": "Crystal Vial", "quantity": 1 }
+      ]
+    },
+    {
+      "id": 13453,
+      "name": "Elixir of Brute Force",
+      "reagents": [
+        { "id": 13465, "name": "Mountain Silversage", "quantity": 2 },
+        { "id": 8846, "name": "Gromsblood", "quantity": 2 },
+        { "id": 3371, "name": "Crystal Vial", "quantity": 1 }
+      ]
+    },
+    {
+      "id": 13442,
+      "name": "Mighty Rage Potion",
+      "reagents": [
+        { "id": 8846, "name": "Gromsblood", "quantity": 3 },
+        { "id": 13423, "name": "Stonescale Oil", "quantity": 1 },
+        { "id": 12804, "name": "Powerful Mojo", "quantity": 1 },
+        { "id": 3371, "name": "Crystal Vial", "quantity": 1 }
+      ]
+    },
+    {
+      "id": 9155,
+      "name": "Arcane Elixir",
+      "reagents": [
+        { "id": 8838, "name": "Sungrass", "quantity": 1 },
+        { "id": 8839, "name": "Blindweed", "quantity": 1 },
+        { "id": 3371, "name": "Crystal Vial", "quantity": 1 }
+      ]
+    },
+    {
+      "id": 13446,
+      "name": "Major Healing Potion",
+      "reagents": [
+        { "id": 13464, "name": "Golden Sansam", "quantity": 2 },
+        { "id": 13465, "name": "Mountain Silversage", "quantity": 1 },
+        { "id": 3371, "name": "Crystal Vial", "quantity": 1 }
+      ]
+    },
+    {
+      "id": 13444,
+      "name": "Major Mana Potion",
+      "reagents": [
+        { "id": 13463, "name": "Dreamfoil", "quantity": 2 },
+        { "id": 13467, "name": "Icecap", "quantity": 1 },
+        { "id": 3371, "name": "Crystal Vial", "quantity": 1 }
+      ]
+    },
+    {
+      "id": 12360,
+      "name": "Transmute: Arcanite",
+      "reagents": [
+        { "id": 12363, "name": "Arcane Crystal", "quantity": 1 },
+        { "id": 12359, "name": "Thorium Bar", "quantity": 1 }
+      ]
+    }
+  ]
+}
