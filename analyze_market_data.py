@@ -1,80 +1,362 @@
-import pandas as pd
-from pathlib import Path
 from rich.console import Console
 from rich.table import Table
-import json
+import pandas as pd
+from market_data import load_all_market_data, load_item_names
+from recipe_analysis import get_profitable_recipes
 
 console = Console()
 
-DATA_DIR = Path("data/market_data/ambershire")
-ITEMS_FILE = Path("data/items.json")
 
+def analyze_daily_patterns(item_df: pd.DataFrame) -> dict:
+    """Analyze which days are best for buying/selling an item.
 
-def load_items():
-    with open(ITEMS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)["items"]
+    Args:
+        item_df: DataFrame with item price data, must have 'avg_price' column and datetime index
 
-
-def analyze_item(item_id: int, item_name: str):
-    """Analyze market data for a specific item and print summary statistics."""
-    file_path = DATA_DIR / f"item_{item_id}_{item_name}_last_30d.csv"
-    if not file_path.exists():
-        console.print(f"[red]Data file for item ID {item_id} does not exist.[/red]")
-        return
-
-    # Read CSV with explicit column names to ensure correct parsing
-    df = pd.read_csv(
-        file_path,
-        names=["timestamp", "bid", "min_buy", "avg_price", "available"],
-        header=0,  # First row contains headers
-        index_col="timestamp",
-        parse_dates=True,
+    Returns:
+        dict with best buy/sell days, prices, and potential profit percentage
+    """
+    # Group by day name directly from the datetime index
+    daily_prices = (
+        item_df.groupby(item_df.index.day_name())["avg_price"]
+        .agg(["mean", "count"])
+        .round(2)
     )
 
-    # Average over full period (30d)
-    avg_30d = df["avg_price"].mean()
+    # Get days with enough samples for reliable stats
+    valid_days = daily_prices[daily_prices["count"] >= 3]
 
-    # Last 7d average
-    last_7d = df[df.index >= (df.index.max() - pd.Timedelta(days=7))]
-    avg_7d = last_7d["avg_price"].mean()
+    if valid_days.empty:
+        return {
+            "best_buy_day": "N/A",
+            "best_buy_price": 0,
+            "best_sell_day": "N/A",
+            "best_sell_price": 0,
+            "potential_profit": 0,
+        }
 
-    # Trend 7-day vs 30-day
-    if avg_7d and avg_30d:
-        trend = ((avg_7d - avg_30d) / avg_30d) * 100
-    else:
-        trend = 0
+    # Find best days
+    best_buy_day = valid_days.sort_values("mean").index[0]
+    best_sell_day = valid_days.sort_values("mean", ascending=False).index[0]
+
+    # Get prices and calculate profit
+    best_buy_price = valid_days.loc[best_buy_day, "mean"]
+    best_sell_price = valid_days.loc[best_sell_day, "mean"]
+    potential_profit = ((best_sell_price - best_buy_price) / best_buy_price) * 100
 
     return {
-        "item_id": item_id,
+        "best_buy_day": best_buy_day,
+        "best_buy_price": best_buy_price,
+        "best_sell_day": best_sell_day,
+        "best_sell_price": best_sell_price,
+        "potential_profit": potential_profit,
+    }
+
+
+def analyze_buy_sell_now(df: pd.DataFrame, item_name: str) -> dict:
+    """Analyze if an item is a good buy or sell opportunity right now.
+
+    Compares the latest price to the 3-day average to identify opportunities.
+
+    Args:
+        df: DataFrame with all market data
+        item_name: Name of the item to analyze
+
+    Returns:
+        dict with current price, 3-day average, and percentage difference
+    """
+    item_df = df.loc[df["item_name"] == item_name].copy()
+
+    if item_df.empty:
+        return {}
+
+    # Get the latest price (most recent entry)
+    latest_price = item_df.iloc[-1]["avg_price"]
+    latest_time = item_df.index[-1]
+
+    # Calculate 3-day average (excluding the current entry)
+    three_days_ago = latest_time - pd.Timedelta(days=3)
+    three_day_data = item_df.loc[
+        (item_df.index >= three_days_ago) & (item_df.index < latest_time)
+    ]
+
+    if three_day_data.empty:
+        return {}
+
+    avg_3d = three_day_data["avg_price"].mean()
+
+    # Calculate percentage difference (negative = cheaper now, positive = more expensive now)
+    pct_diff = ((latest_price - avg_3d) / avg_3d) * 100
+
+    return {
+        "item_name": item_name,
+        "current_price": latest_price,
+        "avg_3d": avg_3d,
+        "pct_diff": pct_diff,
+        "price_diff": latest_price - avg_3d,
+        "last_updated": latest_time,
+    }
+
+
+def analyze_item(df: pd.DataFrame, item_name: str) -> dict:
+    """Analyze market data for a specific item and calculate summary statistics.
+
+    Args:
+        df: DataFrame with all market data
+        item_name: Name of the item to analyze
+
+    Returns:
+        dict with analysis results including averages, trends and best trading days
+    """
+    # Create a clean copy for this item's analysis
+    item_df = df.loc[df["item_name"] == item_name].copy()
+
+    if item_df.empty:
+        console.print(f"[red]No data found for item: {item_name}[/red]")
+        return {}
+
+    # Average over full period (30d)
+    avg_30d = item_df["avg_price"].mean()
+
+    # Calculate 7-day stats using efficient datetime indexing
+    cutoff_date = item_df.index.max() - pd.Timedelta(days=7)
+    avg_7d = item_df.loc[item_df.index >= cutoff_date, "avg_price"].mean()
+
+    # Calculate trend
+    trend = ((avg_7d - avg_30d) / avg_30d * 100) if avg_7d and avg_30d else 0
+
+    # Get daily patterns
+    daily_patterns = analyze_daily_patterns(item_df)
+
+    return {
         "item_name": item_name,
         "avg_30d": avg_30d,
         "avg_7d": avg_7d,
         "trend": trend,
+        "best_buy_day": daily_patterns["best_buy_day"],
+        "best_buy_price": daily_patterns["best_buy_price"],
+        "best_sell_day": daily_patterns["best_sell_day"],
+        "best_sell_price": daily_patterns["best_sell_price"],
+        "flip_profit": daily_patterns["potential_profit"],
     }
 
 
-def main():
-    items = load_items()
+def show_buy_sell_now_opportunities(df: pd.DataFrame, items: dict):
+    """Display tables showing items that are good to buy or sell right now."""
 
-    table = Table(title="Auction House Market Summary last 30d (Ambershire)")
+    buy_opportunities = []
+    sell_opportunities = []
+
+    # Analyze all items
+    for item_id, item_name in items.items():
+        analysis = analyze_buy_sell_now(df, item_name)
+        if not analysis:
+            continue
+
+        # If price is lower than 3-day avg by at least 5%, it's a buy opportunity
+        if analysis["pct_diff"] < -5:
+            buy_opportunities.append(analysis)
+        # If price is higher than 3-day avg by at least 5%, it's a sell opportunity
+        elif analysis["pct_diff"] > 5:
+            sell_opportunities.append(analysis)
+
+    # Sort by absolute gold difference (largest savings/profits first)
+    buy_opportunities.sort(key=lambda x: abs(x["price_diff"]), reverse=True)
+    sell_opportunities.sort(key=lambda x: x["price_diff"], reverse=True)
+
+    # Display BUY NOW opportunities
+    console.print("\n")
+    buy_table = Table(
+        title="BUY NOW - Items Cheaper Than 3-Day Average", title_style="bold green"
+    )
+    buy_table.add_column("Item", justify="left", style="cyan")
+    buy_table.add_column("Current Price", justify="right")
+    buy_table.add_column("3-Day Avg", justify="right")
+    buy_table.add_column("Difference", justify="right")
+    buy_table.add_column("% Off", justify="right", style="green")
+    buy_table.add_column("Last Updated", justify="right", style="dim")
+
+    for opp in buy_opportunities[:15]:  # Show top 15
+        buy_table.add_row(
+            opp["item_name"],
+            f"{opp['current_price']:.2f}g",
+            f"{opp['avg_3d']:.2f}g",
+            f"{opp['price_diff']:.2f}g",
+            f"{abs(opp['pct_diff']):.1f}%",
+            opp["last_updated"].strftime("%b %d %H:%M"),
+        )
+
+    if buy_opportunities:
+        console.print(buy_table)
+    else:
+        console.print("[yellow]No significant buy opportunities right now.[/yellow]")
+
+    # Display SELL NOW opportunities
+    console.print("\n")
+    sell_table = Table(
+        title="SELL NOW - Items More Expensive Than 3-Day Average",
+        title_style="bold yellow",
+    )
+    sell_table.add_column("Item", justify="left", style="cyan")
+    sell_table.add_column("Current Price", justify="right")
+    sell_table.add_column("3-Day Avg", justify="right")
+    sell_table.add_column("Difference", justify="right")
+    sell_table.add_column("% Premium", justify="right", style="yellow")
+    sell_table.add_column("Last Updated", justify="right", style="dim")
+
+    for opp in sell_opportunities[:15]:  # Show top 15
+        sell_table.add_row(
+            opp["item_name"],
+            f"{opp['current_price']:.2f}g",
+            f"{opp['avg_3d']:.2f}g",
+            f"{opp['price_diff']:+.2f}g",
+            f"{opp['pct_diff']:.1f}%",
+            opp["last_updated"].strftime("%b %d %H:%M"),
+        )
+
+    if sell_opportunities:
+        console.print(sell_table)
+    else:
+        console.print("[yellow]No significant sell opportunities right now.[/yellow]")
+
+
+def show_profitable_crafts(df: pd.DataFrame, min_profit_pct: float = 5):
+    """Display table showing profitable crafting opportunities."""
+
+    profitable = get_profitable_recipes(df, min_profit_pct)
+
+    if not profitable:
+        console.print(
+            f"\n[yellow]No recipes with {min_profit_pct}%+ profit found.[/yellow]"
+        )
+        return
+
+    console.print("\n")
+    craft_table = Table(
+        title=f"PROFITABLE CRAFTS - Recipes with {min_profit_pct}%+ Profit",
+        title_style="bold magenta",
+    )
+    craft_table.add_column("Recipe", justify="left", style="cyan")
+    craft_table.add_column("Craft Cost", justify="right")
+    craft_table.add_column("Cost (7d avg)", justify="right", style="dim")
+    craft_table.add_column("Sell Price", justify="right")
+    craft_table.add_column("Price (7d avg)", justify="right", style="dim")
+    craft_table.add_column("Profit", justify="right")
+    craft_table.add_column("ROI", justify="right", style="yellow")
+
+    for craft in profitable[:15]:  # Show top 15
+        profit_color = (
+            "green"
+            if craft["profit"] > 1
+            else "yellow" if craft["profit"] > 0.5 else "white"
+        )
+
+        craft_table.add_row(
+            craft["recipe_name"],
+            f"{craft['total_cost']:.2f}g",
+            f"{craft['total_cost_7d']:.2f}g",
+            f"{craft['current_price']:.2f}g",
+            f"{craft['current_price_7d']:.2f}g",
+            f"[{profit_color}]{craft['profit']:+.2f}g[/{profit_color}]",
+            f"{craft['profit_pct']:+.1f}%",
+        )
+
+    console.print(craft_table)
+
+    # Show detailed breakdown of top recipe
+    if profitable:
+        console.print("\n[bold cyan]Top Recipe Details:[/bold cyan]")
+        top = profitable[0]
+        console.print(
+            f"[cyan]{top['recipe_name']}[/cyan] (Profit: [green]{top['profit']:.2f}g[/green], ROI: [yellow]{top['profit_pct']:.1f}%[/yellow])"
+        )
+        console.print("\nReagent Costs (Current / 7d avg):")
+        for reagent in top["reagent_costs"]:
+            source_label = "[VENDOR]" if reagent["source"] == "vendor" else "[MARKET]"
+            if reagent["source"] == "vendor":
+                console.print(
+                    f"  {source_label} {reagent['quantity']}x {reagent['name']}: "
+                    f"{reagent['unit_price']:.2f}g each = {reagent['total_cost']:.2f}g"
+                )
+            else:
+                price_diff = (
+                    (reagent["unit_price"] - reagent["unit_price_7d"])
+                    / reagent["unit_price_7d"]
+                    * 100
+                )
+                price_color = (
+                    "green" if price_diff < -5 else "red" if price_diff > 5 else "white"
+                )
+                console.print(
+                    f"  {source_label} {reagent['quantity']}x {reagent['name']}: "
+                    f"[{price_color}]{reagent['unit_price']:.2f}g[/{price_color}] / {reagent['unit_price_7d']:.2f}g = "
+                    f"{reagent['total_cost']:.2f}g"
+                )
+        console.print(
+            f"\n[bold]Total Cost:[/bold] {top['total_cost']:.2f}g (7d avg: {top['total_cost_7d']:.2f}g)"
+        )
+        console.print(
+            f"[bold]Sell For:[/bold] {top['current_price']:.2f}g (7d avg: {top['current_price_7d']:.2f}g)"
+        )
+        console.print(
+            f"[bold green]Profit:[/bold green] {top['profit']:.2f}g per craft (7d avg profit: {top['profit_7d']:.2f}g)"
+        )
+
+
+def main():
+    # Load all market data at once
+    console.print("[cyan]Loading market data...[/cyan]")
+    df = load_all_market_data()
+
+    items = load_item_names()
+
+    # Show buy/sell now opportunities first
+    show_buy_sell_now_opportunities(df, items)
+
+    # Show profitable crafting opportunities
+    show_profitable_crafts(df, min_profit_pct=5)
+
+    # Show full market summary
+    console.print("\n")
+    table = Table(title="Auction House Market Summary - Last 30 Days (Ambershire)")
     table.add_column("Item", justify="left")
     table.add_column("Avg (30d)", justify="right")
     table.add_column("Avg (7d)", justify="right")
     table.add_column("7d vs 30d", justify="right")
+    table.add_column("Best Buy", justify="right")
+    table.add_column("Best Sell", justify="right")
+    table.add_column("Gold Profit", justify="right")
+    table.add_column("Flip Profit", justify="right")
 
     for item_id, item_name in items.items():
-        stats = analyze_item(item_id, item_name)
+        stats = analyze_item(df, item_name)
         if not stats:
             continue
 
         trend_color = (
             "green" if stats["trend"] > 0 else "red" if stats["trend"] < 0 else "white"
         )
+        flip_color = (
+            "green"
+            if stats["flip_profit"] > 10
+            else "yellow" if stats["flip_profit"] > 5 else "white"
+        )
+
+        # Calculate raw gold profit
+        gold_profit = stats["best_sell_price"] - stats["best_buy_price"]
+        gold_color = (
+            "green" if gold_profit > 1 else "yellow" if gold_profit > 0.5 else "white"
+        )
+
         table.add_row(
             stats["item_name"],
-            f"{stats['avg_30d']:,.0f}",
-            f"{stats['avg_7d']:,.0f}" if stats["avg_7d"] else "N/A",
+            f"{stats['avg_30d']:.2f}g",
+            f"{stats['avg_7d']:.2f}g" if stats["avg_7d"] else "N/A",
             f"[{trend_color}]{stats['trend']:+.2f}%[/{trend_color}]",
+            f"{stats['best_buy_day'][:3]} ({stats['best_buy_price']:.2f}g)",
+            f"{stats['best_sell_day'][:3]} ({stats['best_sell_price']:.2f}g)",
+            f"[{gold_color}]{gold_profit:+.2f}g[/{gold_color}]",
+            f"[{flip_color}]{stats['flip_profit']:+.1f}%[/{flip_color}]",
         )
 
     console.print(table)

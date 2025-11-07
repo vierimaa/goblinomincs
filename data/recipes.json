@@ -2,6 +2,7 @@
   "recipes": [
     {
       "id": 13457,
+      "source": "Alchemy",
       "name": "Greater Fire Protection Potion",
       "reagents": [
         { "id": 13466, "name": "Plaguebloom", "quantity": 1 },
@@ -12,6 +13,7 @@
     },
     {
       "id": 13461,
+      "source": "Alchemy",
       "name": "Greater Arcane Protection Potion",
       "reagents": [
         { "id": 13463, "name": "Dreamfoil", "quantity": 1 },
@@ -22,6 +24,7 @@
     },
     {
       "id": 13455,
+      "source": "Alchemy",
       "name": "Greater Stoneshield Potion",
       "reagents": [
         { "id": 13464, "name": "Golden Sansam", "quantity": 1 },
@@ -31,6 +34,7 @@
     },
     {
       "id": 13452,
+      "source": "Alchemy",
       "name": "Elixir of the Mongoose",
       "reagents": [
         { "id": 8846, "name": "Gromsblood", "quantity": 2 },
@@ -40,6 +44,7 @@
     },
     {
       "id": 13447,
+      "source": "Alchemy",
       "name": "Elixir of the Sages",
       "reagents": [
         { "id": 13465, "name": "Mountain Silversage", "quantity": 2 },
@@ -49,6 +54,7 @@
     },
     {
       "id": 13453,
+      "source": "Alchemy",
       "name": "Elixir of Brute Force",
       "reagents": [
         { "id": 13465, "name": "Mountain Silversage", "quantity": 2 },
@@ -58,6 +64,7 @@
     },
     {
       "id": 13442,
+      "source": "Alchemy",
       "name": "Mighty Rage Potion",
       "reagents": [
         { "id": 8846, "name": "Gromsblood", "quantity": 3 },
@@ -68,6 +75,7 @@
     },
     {
       "id": 9155,
+      "source": "Alchemy",
       "name": "Arcane Elixir",
       "reagents": [
         { "id": 8838, "name": "Sungrass", "quantity": 1 },
@@ -77,6 +85,7 @@
     },
     {
       "id": 13446,
+      "source": "Alchemy",
       "name": "Major Healing Potion",
       "reagents": [
         { "id": 13464, "name": "Golden Sansam", "quantity": 2 },
@@ -86,6 +95,7 @@
     },
     {
       "id": 13444,
+      "source": "Alchemy",
       "name": "Major Mana Potion",
       "reagents": [
         { "id": 13463, "name": "Dreamfoil", "quantity": 2 },
@@ -95,6 +105,7 @@
     },
     {
       "id": 12360,
+      "source": "Alchemy",
       "name": "Transmute: Arcanite",
       "reagents": [
         { "id": 12363, "name": "Arcane Crystal", "quantity": 1 },

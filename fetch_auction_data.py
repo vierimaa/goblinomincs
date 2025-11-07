@@ -20,7 +20,7 @@ def fetch_auction_history(item_id: int, realm: str = "ambershire", period: str =
     return data
 
 
-def is_recent(file_path: Path, hours: int = 24) -> bool:
+def is_recent(file_path: Path, hours: int = 4) -> bool:
     """Check if the file was modified within the last `hours` hours."""
     if not file_path.exists():
         return False
@@ -63,7 +63,7 @@ def main():
             Path("data/market_data/ambershire")
             / f"item_{item_id}_{item_name}_last_30d.csv"
         )
-        if is_recent(file_path, hours=24):
+        if is_recent(file_path, hours=4):
             console.print(
                 f"[yellow]⏭️ Skipping item ID {item_id} - {item_name} (data is recent)[/yellow]"
             )
