@@ -1,72 +1,80 @@
-# GitHub Copilot Instructions for WoW Gold AI App
+# GitHub Copilot Instructions for Goblinomincs
 
 ## Project Purpose
 
-This Python 3.10+ project (managed with **Poetry**) analyzes World of Warcraft auction house data to discover gold-making opportunities.
+Goblinomincs is a Python 3.10+ project (managed with **Poetry**) that analyzes World of Warcraft Classic auction house data to uncover gold-making opportunities. The tool ingests **local CSV/JSON data** (items, vendor items, recipes, and hourly market history) and produces:
 
-The app loads **local JSON data** — including item definitions, recipes, and auction market history — and performs analysis to identify trends and opportunities.
-It can later integrate with **local LLMs (via Ollama)** for generating insights and answering natural-language questions about the market.
+- 30-day market summaries with weekly patterns
+- Real-time “buy/sell now” signals by comparing prices to 3-day averages
+- Crafting profitability reports with current vs 7-day average costs
+
+Future roadmap includes optional **local LLM (Ollama)** integrations for natural-language insights.
 
 ## Code Style & Design
 
-* Follow **PEP 8** and use **type hints** throughout the codebase.
-* Prefer **clarity and modularity** over clever shortcuts.
-* Use **`pathlib`** for all file and directory handling.
-* Use **`pandas`** for data manipulation and statistics.
-* Use **`rich`** for structured and colorful CLI output.
-* All scripts must be runnable with **Poetry**.
+- Follow **PEP 8** and add **type hints** when practical.
+- Prefer small, composable functions over monoliths.
+- Use **`pathlib`** for file paths.
+- Use **`pandas`** for data manipulation and time-series work.
+- Use **`rich`** for terminal tables, prompts, and panels (interactive CLI lives in `cli.py`).
+- All scripts should remain runnable via **Poetry** (`poetry run python …`).
 
-## Key Directories
+## Key Modules & Data
 
-* `wow_gold_ai/`: main package for CLI commands, AI logic, and utilities.
-* `data/items.json`: static metadata for all WoW items of interest.
-* `data/market_data/`: contains JSON files with auction history data per item.
-* `scripts/`: standalone scripts for data collection and analysis.
+- `analyze_market_data.py` – daily/hourly analysis, buy/sell signals, craft summaries.
+- `market_data.py` – loads CSV market snapshots into a combined DataFrame (converts copper→gold).
+- `recipe_analysis.py` – computes crafting costs, 7-day averages, and profit metrics.
+- `vendor_items.py` – fixed-price vendor item lookups (e.g., Crystal Vial).
+- `cli.py` – interactive Rich-based menu for market summary, opportunities, and crafts.
+- `data/items.json` – tracked auction items (string IDs → item names).
+- `data/vendor_items.json` – vendor-priced items with gold values.
+- `data/recipes.json` – crafting recipes with reagent breakdowns.
+- `data/market_data/ambershire/*.csv` – hourly market history (timestamp, bid, min_buy, avg_price, available).
+- `tests/` – pytest suite covering loaders and analysis helpers.
 
-  * `market_data.py`: fetches and stores auction data from wow-auctions.net.
-  * `analyze_market_data.py`: loads market data, computes averages (30d, 7d), and reports trends.
+## Copilot Guidance
 
-## Copilot Behavior
+When generating code or suggestions:
 
-When assisting with code generation:
+- Keep changes focused; explain rationale briefly.
+- Reuse existing pandas idioms (boolean masks, `.loc`, rolling averages).
+- Align with current analysis conventions:
+  - 30-day overall mean, 7-day rolling windows for trends.
+  - 3-day average comparisons for buy/sell alerts.
+  - Profit outputs in absolute gold **and** percentages when relevant.
+- Respect the Rich-based output style (tables, color-coded cells, readable headings).
+- For new features, prefer extending current modules (`analyze_market_data.py`, `recipe_analysis.py`, etc.) instead of creating new parallel flows.
+- Encourage structured return values (dicts/lists) that feed into tabular display.
+- When touching data paths, rely on `Path` and keep everything workspace-relative.
+- For tests, add **pytest** cases under `tests/` and rely on fixtures/helpers where useful.
+- For AI extensions, recommend **LangChain + Ollama** or other local-only approaches.
 
-* Suggest small changes at the time, with clear explanations and avoid rewriting large sections.
-* Suggest **data fetching**, **processing**, and **storage** utilities compatible with the existing `market_data.py` flow.
-* Reuse **pandas-based analysis patterns** as seen in `analyze_market_data.py`.
-* Encourage **structured JSON output** for storing or sharing analysis results.
-* Suggest helper functions such as:
+## CLI Expectations
 
-  * Calculating 30-day and 7-day average prices.
-  * Identifying items with positive or negative price trends.
-  * Summarizing top movers or profitable crafts.
-* For future AI integrations, prefer **LangChain + Ollama** or direct **local inference** setups (no cloud APIs).
+- The interactive menu is in `cli.py` and already wired to load data once per session.
+- If adding new menu options, follow the current Rich panel + prompt pattern.
+- No Typer commands are currently exposed; keep CLI lightweight unless requirements change.
 
-## CLI and Script Behavior
+## Suggested Enhancements (Roadmap)
 
-* Use **`typer`** for CLI commands.
-* Example commands:
+- Hour-of-day analysis for optimal trading windows.
+- Volatility/risk scores based on rolling standard deviation.
+- Supply pressure indicators using the `available` column.
+- AH fee-adjusted profit calculations and break-even prices.
+- Watchlists, alerts, and export capabilities.
 
-  * `update-auctions`: fetch and store new auction data.
-  * `analyze-market`: generate summarized market trends.
-  * `suggest-opportunities`: use AI to suggest profitable crafts or flips.
+Use these only as inspiration; confirm with the user before building sizable new features.
 
-## Example Prompts for Copilot Chat
+## Don’ts
 
-You can ask Copilot things like:
-
-* “Write a helper function to compute average price trends for each item.”
-* “Add a Typer command to summarize items with a 7-day price increase.”
-* “Load all auction data from data/market_data and return a combined DataFrame.”
-* “Integrate an Ollama-powered analysis tool to explain market patterns.”
-
-## Don’t
-
-* Don’t use heavy web frameworks or GUIs — this is a **CLI + data analysis** tool.
-* Don’t assume network access unless explicitly fetching data from configured APIs.
-* Don’t hardcode paths — always use `pathlib.Path`.
+- Don’t introduce heavy web frameworks or GUIs—this remains a CLI/data tool.
+- Don’t assume external network access unless explicitly requested.
+- Don’t hardcode absolute paths or server-specific details; keep Ambershire as default unless instructed.
+- Don’t duplicate logic already encapsulated in `market_data.py` or `recipe_analysis.py`.
 
 ## Notes
 
-* The **`market_data.py`** script is responsible for fetching and saving structured auction data.
-* The **`analyze_market_data.py`** script focuses on trend computation and summarization; its logic will later power AI tool integrations.
-* Future AI layers should build on existing analysis utilities rather than duplicate logic.
+- `fetch_auction_data.py` handles data collection from wow-auctions.net.
+- `pytest.ini` configures pytest; run tests via `poetry run pytest`.
+- Keep vendor item handling centralized in `vendor_items.py` and recipe profit logic in `recipe_analysis.py`.
+- Future AI layers should leverage existing analytics instead of recomputing raw statistics.
