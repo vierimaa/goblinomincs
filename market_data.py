@@ -24,13 +24,23 @@ def load_all_market_data():
             print(f"Warning: Missing data file for {item_name} (ID {item_id})")
             continue
 
-        df = pd.read_csv(
-            csv_path,
-            names=["timestamp", "bid", "min_buy", "avg_price", "available"],
-            header=0,  # First row contains headers
-            index_col="timestamp",
-            parse_dates=True,
-        )
+        try:
+            df = pd.read_csv(
+                csv_path,
+                names=["timestamp", "bid", "min_buy", "avg_price", "available"],
+                header=0,  # First row contains headers
+                index_col="timestamp",
+                parse_dates=True,
+            )
+        except Exception as e:
+            print(f"Error loading {item_name} (ID {item_id}): {e}")
+            continue
+
+        # Debug: Check what columns we actually have
+        if not all(col in df.columns for col in ["bid", "min_buy", "avg_price"]):
+            print(f"Warning: {item_name} has columns: {df.columns.tolist()}")
+            continue
+
         # Convert copper to gold (divide by 10000, as 1 gold = 10000 copper)
         price_columns = ["bid", "min_buy", "avg_price"]
         df[price_columns] = df[price_columns].div(10000)
