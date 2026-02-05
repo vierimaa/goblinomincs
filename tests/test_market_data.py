@@ -1,9 +1,8 @@
 """Tests for market data loading functions."""
 
-import pytest
 import pandas as pd
 from pathlib import Path
-from market_data import load_item_names
+from goblinomincs.market_data import load_item_names
 
 
 def test_load_item_names():

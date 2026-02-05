@@ -5,8 +5,8 @@ from rich.table import Table
 from rich.prompt import Prompt
 from rich.panel import Panel
 
-from market_data import load_all_market_data, load_item_names
-from analyze_market_data import (
+from goblinomincs.market_data import load_all_market_data, load_item_names
+from goblinomincs.analyze_market_data import (
     analyze_item,
     show_buy_sell_now_opportunities,
     show_profitable_crafts,
@@ -181,5 +181,10 @@ def interactive_menu():
         console.print("\n" * 2)  # Clear space for next menu
 
 
-if __name__ == "__main__":
+def main():
+    """Entry point for the CLI."""
     interactive_menu()
+
+
+if __name__ == "__main__":
+    main()

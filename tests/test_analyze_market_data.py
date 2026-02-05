@@ -1,9 +1,8 @@
 """Tests for market analysis functions."""
 
-import pytest
 import pandas as pd
 from datetime import datetime, timedelta
-from analyze_market_data import analyze_daily_patterns, analyze_buy_sell_now
+from goblinomincs.analyze_market_data import analyze_daily_patterns, analyze_buy_sell_now
 
 
 def create_sample_item_data():

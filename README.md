@@ -28,28 +28,46 @@ A Python-based World of Warcraft Classic auction house analysis tool that helps 
 ## Requirements
 
 - Python 3.10+
-- Poetry for dependency management
+- uv for Python and dependency management
 - Market data from wow-auctions.net (Ambershire server)
 
 ## Installation
 
-1. Clone the repository:
+1. Install uv (if not already installed):
+```bash
+# Windows (PowerShell)
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+2. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/goblinomincs.git
 cd goblinomincs
 ```
 
-2. Install dependencies using Poetry:
+3. Install Python and dependencies:
 ```bash
-poetry install
+uv python install 3.12
+uv sync
 ```
 
 ## Usage
 
+### First Time Setup: Fetch Market Data
+Before running the CLI, you need to download market data from wow-auctions.net:
+```bash
+uv run fetch-auction-data
+```
+
+This populates `data/market_data/ambershire/` with hourly price snapshots for the past 30 days.
+
 ### Interactive CLI (Recommended)
 Launch the interactive menu to explore all analysis views:
 ```bash
-poetry run python cli.py
+uv run goblinomincs
 ```
 
 **Menu Options:**
@@ -63,18 +81,27 @@ poetry run python cli.py
 
 **Fetch Latest Market Data:**
 ```bash
-poetry run python fetch_auction_data.py
+uv run fetch-auction-data
 ```
 
 **Run Full Analysis:**
 ```bash
-poetry run python analyze_market_data.py
+uv run python -m goblinomincs.analyze_market_data
 ```
 
 ## Project Structure
 
 ```
 goblinomincs/
+├── src/
+│   └── goblinomincs/           # Main package
+│       ├── __init__.py
+│       ├── analyze_market_data.py  # Market analysis functions
+│       ├── cli.py                  # Interactive menu interface
+│       ├── fetch_auction_data.py   # Data collection from API
+│       ├── market_data.py          # Data loading utilities
+│       ├── recipe_analysis.py      # Crafting profitability
+│       └── vendor_items.py         # Vendor item handling
 ├── data/
 │   ├── items.json              # Tracked item definitions (52 items)
 │   ├── recipes.json            # Crafting recipes (11 alchemy recipes)
@@ -85,34 +112,28 @@ goblinomincs/
 │   ├── test_market_data.py
 │   ├── test_vendor_items.py
 │   └── test_analyze_market_data.py
-├── cli.py                      # Interactive menu interface
-├── fetch_auction_data.py       # Data collection from API
-├── analyze_market_data.py      # Market analysis functions
-├── market_data.py              # Data loading utilities
-├── recipe_analysis.py          # Crafting profitability calculations
-├── vendor_items.py             # Vendor item handling
-├── pyproject.toml              # Poetry dependencies
+├── pyproject.toml              # Project dependencies (PEP 621)
 └── pytest.ini                  # Test configuration
 ```
 
 ## Key Modules
 
-### `cli.py`
+### `goblinomincs.cli`
 Interactive menu system using Rich library for beautiful terminal UI. Loads data once and allows exploring different analysis views without reloading.
 
-### `analyze_market_data.py`
+### `goblinomincs.analyze_market_data`
 Core analysis functions:
 - `analyze_daily_patterns()` - Day-of-week price analysis
 - `analyze_buy_sell_now()` - Compare current prices to 3-day averages
 - `show_buy_sell_now_opportunities()` - Display buy/sell tables
 - `show_profitable_crafts()` - Display recipe profitability
 
-### `recipe_analysis.py`
+### `goblinomincs.recipe_analysis`
 Crafting economics:
 - `calculate_crafting_cost()` - Compute current and 7-day average costs/profits
 - `get_profitable_recipes()` - Return sorted list of profitable recipes
 
-### `vendor_items.py`
+### `goblinomincs.vendor_items`
 Handle items with fixed vendor prices (e.g., Crystal Vial at 0.2g).
 
 ## Development
@@ -120,17 +141,18 @@ Handle items with fixed vendor prices (e.g., Crystal Vial at 0.2g).
 ### Setup Development Environment
 
 ```bash
-# Install Poetry
-curl -sSL https://install.python-poetry.org | python3 -
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install dependencies (including dev tools)
-poetry install
+# Install Python and dependencies (including dev tools)
+uv python install 3.12
+uv sync --extra dev
 
 # Run tests
-poetry run pytest
+uv run pytest
 
 # Run tests with coverage
-poetry run pytest --cov
+uv run pytest --cov
 ```
 
 ### Running Tests
@@ -138,13 +160,13 @@ poetry run pytest --cov
 The project includes pytest tests for core functionality:
 ```bash
 # Run all tests
-poetry run pytest
+uv run pytest
 
 # Run specific test file
-poetry run pytest tests/test_market_data.py
+uv run pytest tests/test_market_data.py
 
 # Verbose output
-poetry run pytest -v
+uv run pytest -v
 ```
 
 ### Adding New Items

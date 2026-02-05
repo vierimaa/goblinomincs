@@ -1,8 +1,8 @@
 from rich.console import Console
 from rich.table import Table
 import pandas as pd
-from market_data import load_all_market_data, load_item_names
-from recipe_analysis import get_profitable_recipes
+from goblinomincs.market_data import load_all_market_data, load_item_names
+from goblinomincs.recipe_analysis import get_profitable_recipes
 
 console = Console()
 

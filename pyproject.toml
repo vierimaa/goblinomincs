@@ -1,23 +1,33 @@
-[tool.poetry]
+[project]
 name = "goblinomincs"
 version = "0.1.0"
-description = ""
-authors = ["vierimaa <o.vierimaa@gmail.com>"]
-license = "MIT"
+description = "World of Warcraft Classic auction house analysis tool"
+authors = [{name = "vierimaa", email = "o.vierimaa@gmail.com"}]
+license = {text = "MIT"}
 readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "matplotlib>=3.10.7",
+    "plotly>=6.3.1",
+    "requests>=2.32.5",
+    "pandas>=2.3.3",
+    "typer>=0.20.0",
+    "rich>=14.2.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-matplotlib = "^3.10.7"
-plotly = "^6.3.1"
-requests = "^2.32.5"
-pandas = "^2.3.3"
-typer = "^0.20.0"
-rich = "^14.2.0"
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.0.0"
+[project.scripts]
+goblinomincs = "goblinomincs.cli:main"
+fetch-auction-data = "goblinomincs.fetch_auction_data:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["goblinomincs"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

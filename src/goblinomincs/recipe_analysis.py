@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Optional
 import pandas as pd
-from vendor_items import get_vendor_price
+from goblinomincs.vendor_items import get_vendor_price
 
 RECIPES_FILE = Path("data/recipes.json")
 

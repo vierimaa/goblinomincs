@@ -2,7 +2,7 @@
 
 ## Project Purpose
 
-Goblinomincs is a Python 3.10+ project (managed with **Poetry**) that analyzes World of Warcraft Classic auction house data to uncover gold-making opportunities. The tool ingests **local CSV/JSON data** (items, vendor items, recipes, and hourly market history) and produces:
+Goblinomincs is a Python 3.10+ project (managed with **uv**) that analyzes World of Warcraft Classic auction house data to uncover gold-making opportunities. The tool ingests **local CSV/JSON data** (items, vendor items, recipes, and hourly market history) and produces:
 
 - 30-day market summaries with weekly patterns
 - Real-time “buy/sell now” signals by comparing prices to 3-day averages
@@ -17,7 +17,7 @@ Future roadmap includes optional **local LLM (Ollama)** integrations for natural
 - Use **`pathlib`** for file paths.
 - Use **`pandas`** for data manipulation and time-series work.
 - Use **`rich`** for terminal tables, prompts, and panels (interactive CLI lives in `cli.py`).
-- All scripts should remain runnable via **Poetry** (`poetry run python …`).
+- All scripts should remain runnable via **uv** (`uv run …`).
 
 ## Key Modules & Data
 
@@ -75,6 +75,6 @@ Use these only as inspiration; confirm with the user before building sizable new
 ## Notes
 
 - `fetch_auction_data.py` handles data collection from wow-auctions.net.
-- `pytest.ini` configures pytest; run tests via `poetry run pytest`.
+- `pytest.ini` configures pytest; run tests via `uv run pytest`.
 - Keep vendor item handling centralized in `vendor_items.py` and recipe profit logic in `recipe_analysis.py`.
 - Future AI layers should leverage existing analytics instead of recomputing raw statistics.

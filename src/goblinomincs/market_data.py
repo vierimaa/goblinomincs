@@ -1,14 +1,15 @@
-import pandas as pd
-import json
 from pathlib import Path
+import json
+
+import pandas as pd
 
 DATA_DIR = Path("data/market_data/ambershire")
 ITEMS_FILE = Path("data/items.json")
 
 
-def load_item_names():
+def load_item_names() -> dict:
     """Load item names from items.json."""
-    with open("data/items.json", "r") as f:
+    with ITEMS_FILE.open("r", encoding="utf-8") as f:
         items_data = json.load(f)
     return items_data["items"]
 
@@ -52,7 +53,7 @@ def load_all_market_data():
 
         all_data.append(df)
 
-        if not all_data:
-            raise FileNotFoundError("No valid market data files were found.")
+    if not all_data:
+        raise FileNotFoundError("No valid market data files were found.")
 
     return pd.concat(all_data)

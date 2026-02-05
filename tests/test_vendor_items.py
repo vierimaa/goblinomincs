@@ -1,8 +1,7 @@
 """Tests for vendor items functionality."""
 
-import pytest
 from pathlib import Path
-from vendor_items import load_vendor_items, get_vendor_price
+from goblinomincs.vendor_items import load_vendor_items, get_vendor_price
 
 
 def test_load_vendor_items():
