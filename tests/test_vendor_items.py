@@ -1,8 +1,11 @@
 """Tests for vendor items functionality."""
 
+import pytest
+
 from goblinomincs.vendor_items import get_vendor_price, load_vendor_items
 
 
+@pytest.mark.integration
 def test_load_vendor_items():
     """Test that vendor_items.json loads correctly."""
     vendor_items = load_vendor_items()
@@ -20,22 +23,31 @@ def test_load_vendor_items():
         assert item_data["vendor_price"] > 0
 
 
-def test_get_vendor_price_crystal_vial():
-    """Test that Crystal Vial returns correct vendor price."""
-    # Crystal Vial (item ID 3371) should be 0.2g
-    price = get_vendor_price("3371")
+@pytest.mark.integration
+def test_load_vendor_items_with_custom_path(vendor_items_file):
+    """Test that vendor_items.json loads with custom path parameter."""
+    vendor_items = load_vendor_items(vendor_file=vendor_items_file)
+
+    assert isinstance(vendor_items, dict)
+    assert len(vendor_items) > 0
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "item_id,expected_price,item_name",
+    [
+        ("3371", 0.2, "Crystal Vial"),
+        ("3372", 0.04, "Leaded Vial"),
+    ],
+)
+def test_get_vendor_price(item_id, expected_price, item_name):
+    """Test vendor prices for various items."""
+    price = get_vendor_price(item_id)
     assert price is not None
-    assert price == 0.2
+    assert price == expected_price
 
 
-def test_get_vendor_price_leaded_vial():
-    """Test that Leaded Vial returns correct vendor price."""
-    # Leaded Vial (item ID 3372) should be 0.04g
-    price = get_vendor_price("3372")
-    assert price is not None
-    assert price == 0.04
-
-
+@pytest.mark.unit
 def test_get_vendor_price_non_vendor_item():
     """Test that non-vendor items return None."""
     # Arcane Crystal (12363) is not a vendor item

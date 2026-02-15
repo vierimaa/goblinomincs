@@ -2,9 +2,12 @@
 
 from pathlib import Path
 
+import pytest
+
 from goblinomincs.market_data import load_item_names
 
 
+@pytest.mark.integration
 def test_load_item_names():
     """Test that items.json loads correctly."""
     items = load_item_names()
@@ -25,8 +28,20 @@ def test_load_item_names():
         assert len(item_name) > 0
 
 
+@pytest.mark.integration
+def test_load_item_names_with_custom_path(items_file):
+    """Test that items.json loads with custom path parameter."""
+    # Use explicit path
+    items = load_item_names(items_file=items_file)
+
+    assert isinstance(items, dict)
+    assert len(items) > 0
+
+
+@pytest.mark.integration
 def test_market_data_directory_exists():
     """Test that market data directory exists."""
     data_dir = Path("data/market_data/ambershire")
     assert data_dir.exists(), "Market data directory not found"
     assert data_dir.is_dir(), "Market data path is not a directory"
+

@@ -1,23 +1,26 @@
 """Recipe and crafting cost analysis utilities."""
 
-import json
 from pathlib import Path
 
 import pandas as pd
 
+from goblinomincs.data_loaders import load_json_data
 from goblinomincs.vendor_items import get_vendor_price
 
 RECIPES_FILE = Path("data/recipes.json")
 
 
-def load_recipes() -> list:
+def load_recipes(recipes_file: Path | None = None) -> list:
     """Load all recipes from recipes.json.
+
+    Args:
+        recipes_file: Optional path to recipes.json file (uses default if None)
 
     Returns:
         list: List of recipe dictionaries
     """
-    with RECIPES_FILE.open(encoding="utf-8") as f:
-        return json.load(f)["recipes"]
+    file_path = recipes_file or RECIPES_FILE
+    return load_json_data(file_path, key="recipes")
 
 
 def build_recipe_lookup() -> dict:
@@ -75,7 +78,7 @@ def _get_craft_price_for_reagent(
         return None, None
 
     try:
-        craft_analysis = calculate_crafting_cost_internal(
+        craft_analysis = _calculate_crafting_cost_internal(
             recipe_lookup[reagent_id], df, recipe_lookup, cost_cache
         )
         if craft_analysis["missing_prices"]:
@@ -172,7 +175,7 @@ def get_best_reagent_price(
     return best_price, best_price_7d, source
 
 
-def calculate_crafting_cost_internal(
+def _calculate_crafting_cost_internal(
     recipe: dict, df: pd.DataFrame, recipe_lookup: dict, cost_cache: dict
 ) -> dict:
     """Internal function to calculate crafting cost with recursion support.
@@ -279,7 +282,7 @@ def calculate_crafting_cost(recipe: dict, df: pd.DataFrame) -> dict:
     """
     recipe_lookup = build_recipe_lookup()
     cost_cache = {}  # Cache to avoid recalculating costs
-    return calculate_crafting_cost_internal(recipe, df, recipe_lookup, cost_cache)
+    return _calculate_crafting_cost_internal(recipe, df, recipe_lookup, cost_cache)
 
 
 def get_profitable_recipes(df: pd.DataFrame, min_profit_pct: float = 0) -> list:
@@ -298,7 +301,7 @@ def get_profitable_recipes(df: pd.DataFrame, min_profit_pct: float = 0) -> list:
     profitable = []
 
     for recipe in recipes:
-        analysis = calculate_crafting_cost_internal(
+        analysis = _calculate_crafting_cost_internal(
             recipe, df, recipe_lookup, cost_cache
         )
 

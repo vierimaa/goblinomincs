@@ -146,9 +146,19 @@ def analyze_item(df: pd.DataFrame, item_name: str) -> dict:
     }
 
 
-def show_buy_sell_now_opportunities(df: pd.DataFrame, items: dict):
-    """Display tables showing items that are good to buy or sell right now."""
+def get_buy_sell_opportunities(
+    df: pd.DataFrame, items: dict, threshold_pct: float = 5
+) -> tuple[list[dict], list[dict]]:
+    """Calculate buy and sell opportunities based on price vs 3-day average.
 
+    Args:
+        df: DataFrame with all market data
+        items: Dictionary mapping item IDs to item names
+        threshold_pct: Minimum percentage difference to trigger opportunity (default: 5%)
+
+    Returns:
+        tuple: (buy_opportunities, sell_opportunities) sorted by gold difference
+    """
     buy_opportunities = []
     sell_opportunities = []
 
@@ -158,16 +168,34 @@ def show_buy_sell_now_opportunities(df: pd.DataFrame, items: dict):
         if not analysis:
             continue
 
-        # If price is lower than 3-day avg by at least 5%, it's a buy opportunity
-        if analysis["pct_diff"] < -5:
+        # If price is lower than 3-day avg by threshold, it's a buy opportunity
+        if analysis["pct_diff"] < -threshold_pct:
             buy_opportunities.append(analysis)
-        # If price is higher than 3-day avg by at least 5%, it's a sell opportunity
-        elif analysis["pct_diff"] > 5:
+        # If price is higher than 3-day avg by threshold, it's a sell opportunity
+        elif analysis["pct_diff"] > threshold_pct:
             sell_opportunities.append(analysis)
 
     # Sort by absolute gold difference (largest savings/profits first)
     buy_opportunities.sort(key=lambda x: abs(x["price_diff"]), reverse=True)
     sell_opportunities.sort(key=lambda x: x["price_diff"], reverse=True)
+
+    return buy_opportunities, sell_opportunities
+
+
+def display_buy_sell_opportunities(
+    buy_opportunities: list[dict],
+    sell_opportunities: list[dict],
+    console: Console,
+    max_display: int = 15,
+) -> None:
+    """Display buy and sell opportunity tables.
+
+    Args:
+        buy_opportunities: List of buy opportunity analysis dicts
+        sell_opportunities: List of sell opportunity analysis dicts
+        console: Rich Console instance for output
+        max_display: Maximum number of items to show per table (default: 15)
+    """
 
     # Display BUY NOW opportunities
     console.print("\n")
@@ -181,7 +209,7 @@ def show_buy_sell_now_opportunities(df: pd.DataFrame, items: dict):
     buy_table.add_column("% Off", justify="right", style="green")
     buy_table.add_column("Last Updated", justify="right", style="dim")
 
-    for opp in buy_opportunities[:15]:  # Show top 15
+    for opp in buy_opportunities[:max_display]:
         buy_table.add_row(
             opp["item_name"],
             f"{opp['current_price']:.2f}g",
@@ -209,7 +237,7 @@ def show_buy_sell_now_opportunities(df: pd.DataFrame, items: dict):
     sell_table.add_column("% Premium", justify="right", style="yellow")
     sell_table.add_column("Last Updated", justify="right", style="dim")
 
-    for opp in sell_opportunities[:15]:  # Show top 15
+    for opp in sell_opportunities[:max_display]:
         sell_table.add_row(
             opp["item_name"],
             f"{opp['current_price']:.2f}g",
@@ -225,20 +253,42 @@ def show_buy_sell_now_opportunities(df: pd.DataFrame, items: dict):
         console.print("[yellow]No significant sell opportunities right now.[/yellow]")
 
 
-def show_profitable_crafts(df: pd.DataFrame, min_profit_pct: float = 5):
-    """Display table showing profitable crafting opportunities."""
+def show_buy_sell_now_opportunities(
+    df: pd.DataFrame, items: dict, console_inst: Console | None = None
+) -> None:
+    """Display tables showing items that are good to buy or sell right now.
 
-    profitable = get_profitable_recipes(df, min_profit_pct)
+    Args:
+        df: DataFrame with all market data
+        items: Dictionary mapping item IDs to item names
+        console_inst: Optional Console instance (uses module console if None)
+    """
+    console_to_use = console_inst or console
+    buy_opps, sell_opps = get_buy_sell_opportunities(df, items)
+    display_buy_sell_opportunities(buy_opps, sell_opps, console_to_use)
 
+
+def display_profitable_crafts(
+    profitable: list[dict],
+    console: Console,
+    max_display: int = 15,
+    show_details: bool = True,
+) -> None:
+    """Display table showing profitable crafting opportunities.
+
+    Args:
+        profitable: List of profitable recipe analysis dicts
+        console: Rich Console instance for output
+        max_display: Maximum number of recipes to show (default: 15)
+        show_details: Whether to show detailed breakdown of top recipe (default: True)
+    """
     if not profitable:
-        console.print(
-            f"\n[yellow]No recipes with {min_profit_pct}%+ profit found.[/yellow]"
-        )
+        console.print("\n[yellow]No profitable recipes found.[/yellow]")
         return
 
     console.print("\n")
     craft_table = Table(
-        title=f"PROFITABLE CRAFTS - Recipes with {min_profit_pct}%+ Profit",
+        title="PROFITABLE CRAFTS",
         title_style="bold magenta",
     )
     craft_table.add_column("Recipe", justify="left", style="cyan")
@@ -249,7 +299,7 @@ def show_profitable_crafts(df: pd.DataFrame, min_profit_pct: float = 5):
     craft_table.add_column("Profit", justify="right")
     craft_table.add_column("ROI", justify="right", style="yellow")
 
-    for craft in profitable[:15]:  # Show top 15
+    for craft in profitable[:max_display]:
         profit_color = (
             "green"
             if craft["profit"] > 1
@@ -271,7 +321,7 @@ def show_profitable_crafts(df: pd.DataFrame, min_profit_pct: float = 5):
     console.print(craft_table)
 
     # Show detailed breakdown of top recipe
-    if profitable:
+    if show_details and profitable:
         console.print("\n[bold cyan]Top Recipe Details:[/bold cyan]")
         top = profitable[0]
         console.print(
@@ -310,17 +360,60 @@ def show_profitable_crafts(df: pd.DataFrame, min_profit_pct: float = 5):
         )
 
 
-def show_recipes_by_source(df: pd.DataFrame):
-    """Display all recipes organized by source (profession) with costs and prices."""
-    recipes = load_recipes()
+def show_profitable_crafts(
+    df: pd.DataFrame,
+    min_profit_pct: float = 5,
+    console_inst: Console | None = None,
+) -> None:
+    """Display table showing profitable crafting opportunities.
 
-    # Group recipes by source
+    Args:
+        df: DataFrame with all market data
+        min_profit_pct: Minimum profit percentage to include (default: 5)
+        console_inst: Optional Console instance (uses module console if None)
+    """
+    console_to_use = console_inst or console
+    profitable = get_profitable_recipes(df, min_profit_pct)
+    display_profitable_crafts(profitable, console_to_use)
+
+
+def get_recipes_by_source(df: pd.DataFrame) -> dict[str, list[dict]]:
+    """Group recipes by source (profession) with cost analysis.
+
+    Args:
+        df: DataFrame with all market data
+
+    Returns:
+        dict: Dictionary mapping source names to lists of recipe analysis dicts
+    """
+    recipes = load_recipes()
     recipes_by_source = {}
+
     for recipe in recipes:
         source = recipe.get("source", "Unknown")
         if source not in recipes_by_source:
             recipes_by_source[source] = []
-        recipes_by_source[source].append(recipe)
+
+        # Calculate cost analysis for this recipe
+        analysis = calculate_crafting_cost(recipe, df)
+        recipes_by_source[source].append(analysis)
+
+    # Sort recipes within each source by name
+    for source in recipes_by_source:
+        recipes_by_source[source].sort(key=lambda r: r["recipe_name"])
+
+    return recipes_by_source
+
+
+def display_recipes_by_source(
+    recipes_by_source: dict[str, list[dict]], console: Console
+) -> None:
+    """Display recipe tables organized by source (profession).
+
+    Args:
+        recipes_by_source: Dictionary mapping source names to recipe analysis lists
+        console: Rich Console instance for output
+    """
 
     # Display tables for each source/profession
     for source, source_recipes in sorted(recipes_by_source.items()):
@@ -337,9 +430,7 @@ def show_recipes_by_source(df: pd.DataFrame):
         table.add_column("ROI %", justify="right")
         table.add_column("Status", justify="center")
 
-        for recipe in sorted(source_recipes, key=lambda r: r["name"]):
-            analysis = calculate_crafting_cost(recipe, df)
-
+        for analysis in source_recipes:
             # Handle missing prices
             if analysis["current_price"] is None:
                 table.add_row(
@@ -398,6 +489,20 @@ def show_recipes_by_source(df: pd.DataFrame):
     console.print(
         "\n[dim]Status: ✓ = Profitable | ✗ = Loss | ⚠ = Missing reagent prices | ❌ = No market data[/dim]"
     )
+
+
+def show_recipes_by_source(
+    df: pd.DataFrame, console_inst: Console | None = None
+) -> None:
+    """Display all recipes organized by source (profession) with costs and prices.
+
+    Args:
+        df: DataFrame with all market data
+        console_inst: Optional Console instance (uses module console if None)
+    """
+    console_to_use = console_inst or console
+    recipes_by_source = get_recipes_by_source(df)
+    display_recipes_by_source(recipes_by_source, console_to_use)
 
 
 def main():

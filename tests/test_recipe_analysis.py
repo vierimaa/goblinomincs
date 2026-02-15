@@ -1,6 +1,7 @@
 """Tests for recipe analysis and crafting cost calculations."""
 
 import pandas as pd
+import pytest
 
 from goblinomincs.recipe_analysis import (
     _choose_best_price,
@@ -12,6 +13,7 @@ from goblinomincs.recipe_analysis import (
 )
 
 
+@pytest.mark.integration
 def test_load_recipes():
     """Test that recipes.json loads correctly."""
     recipes = load_recipes()
@@ -35,6 +37,16 @@ def test_load_recipes():
         assert "quantity" in reagent
 
 
+@pytest.mark.integration
+def test_load_recipes_with_custom_path(recipes_file):
+    """Test that recipes.json loads with custom path parameter."""
+    recipes = load_recipes(recipes_file=recipes_file)
+
+    assert isinstance(recipes, list)
+    assert len(recipes) > 0
+
+
+@pytest.mark.unit
 def test_build_recipe_lookup():
     """Test recipe lookup dictionary is built correctly."""
     lookup = build_recipe_lookup()
@@ -50,6 +62,7 @@ def test_build_recipe_lookup():
         assert str(recipe["id"]) == item_id
 
 
+@pytest.mark.unit
 def test_swiftness_potion_recipe_exists():
     """Test that Swiftness Potion recipe was added correctly."""
     lookup = build_recipe_lookup()
@@ -68,6 +81,7 @@ def test_swiftness_potion_recipe_exists():
     assert 3372 in reagent_ids  # Leaded Vial
 
 
+@pytest.mark.unit
 def test_potion_of_quickness_uses_swiftness_potion():
     """Test that Potion of Quickness correctly uses Swiftness Potion as reagent."""
     lookup = build_recipe_lookup()
@@ -81,43 +95,10 @@ def test_potion_of_quickness_uses_swiftness_potion():
     assert 2459 in reagent_ids  # Swiftness Potion
 
 
-def create_sample_market_data():
-    """Create sample market data for testing recipe calculations."""
-    dates = pd.date_range(start="2025-10-01", periods=30, freq="D")
-
-    items_data = {
-        "Gromsblood": 0.5,
-        "Mountain Silversage": 0.8,
-        "Swiftness Potion": 2.0,
-        "Swiftthistle": 0.3,
-        "Briarthorn": 0.1,
-        "Golden Sansam": 0.6,
-        "Plaguebloom": 0.4,
-        "Stonescale Oil": 0.7,
-        "Dreamfoil": 0.5,
-        "Icecap": 0.6,
-        "Potion of Quickness": 3.5,
-        "Greater Fire Protection Potion": 2.5,
-    }
-
-    data_frames = []
-    for item_name, base_price in items_data.items():
-        data = {
-            "item_name": [item_name] * len(dates),
-            "avg_price": [base_price + (i * 0.01) for i in range(len(dates))],
-            "bid": [(base_price - 0.1) + (i * 0.01) for i in range(len(dates))],
-            "min_buy": [(base_price - 0.05) + (i * 0.01) for i in range(len(dates))],
-            "available": [50] * len(dates),
-        }
-        df = pd.DataFrame(data, index=dates)
-        data_frames.append(df)
-
-    return pd.concat(data_frames)
-
-
-def test_get_market_price_for_reagent():
+@pytest.mark.unit
+def test_get_market_price_for_reagent(sample_market_data):
     """Test market price retrieval for reagents."""
-    df = create_sample_market_data()
+    df = sample_market_data
 
     current, avg_7d = _get_market_price_for_reagent("Gromsblood", df)
 
@@ -127,9 +108,10 @@ def test_get_market_price_for_reagent():
     assert avg_7d > 0
 
 
-def test_get_market_price_missing_item():
+@pytest.mark.unit
+def test_get_market_price_missing_item(sample_market_data):
     """Test market price retrieval for non-existent item."""
-    df = create_sample_market_data()
+    df = sample_market_data
 
     current, avg_7d = _get_market_price_for_reagent("Nonexistent Item", df)
 
@@ -137,6 +119,7 @@ def test_get_market_price_missing_item():
     assert avg_7d is None
 
 
+@pytest.mark.unit
 def test_choose_best_price_craft_cheaper():
     """Test that crafting is chosen when cheaper than market."""
     best, best_7d, source = _choose_best_price(
@@ -148,6 +131,7 @@ def test_choose_best_price_craft_cheaper():
     assert source == "crafted"
 
 
+@pytest.mark.unit
 def test_choose_best_price_market_cheaper():
     """Test that market is chosen when cheaper than crafting."""
     best, best_7d, source = _choose_best_price(
@@ -159,6 +143,7 @@ def test_choose_best_price_market_cheaper():
     assert source == "auction"
 
 
+@pytest.mark.unit
 def test_choose_best_price_only_craft_available():
     """Test that craft is chosen when market unavailable."""
     best, best_7d, source = _choose_best_price(
@@ -169,6 +154,7 @@ def test_choose_best_price_only_craft_available():
     assert source == "crafted"
 
 
+@pytest.mark.unit
 def test_choose_best_price_only_market_available():
     """Test that market is chosen when craft unavailable."""
     best, best_7d, source = _choose_best_price(
@@ -179,6 +165,7 @@ def test_choose_best_price_only_market_available():
     assert source == "auction"
 
 
+@pytest.mark.unit
 def test_choose_best_price_neither_available():
     """Test handling when neither craft nor market available."""
     best, best_7d, source = _choose_best_price(
@@ -190,9 +177,10 @@ def test_choose_best_price_neither_available():
     assert source == "missing"
 
 
-def test_calculate_crafting_cost_simple_recipe():
+@pytest.mark.unit
+def test_calculate_crafting_cost_simple_recipe(sample_market_data):
     """Test calculating cost for a simple recipe with vendor and market items."""
-    df = create_sample_market_data()
+    df = sample_market_data
     lookup = build_recipe_lookup()
 
     # Greater Fire Protection Potion uses vendor vials and market herbs
@@ -207,9 +195,10 @@ def test_calculate_crafting_cost_simple_recipe():
     assert len(result["reagent_costs"]) == 4  # 4 reagents
 
 
-def test_calculate_crafting_cost_recursive_recipe():
+@pytest.mark.unit
+def test_calculate_crafting_cost_recursive_recipe(sample_market_data):
     """Test recursive costing for Potion of Quickness (uses Swiftness Potion)."""
-    df = create_sample_market_data()
+    df = sample_market_data
     lookup = build_recipe_lookup()
 
     recipe = lookup["61181"]  # Potion of Quickness
@@ -230,9 +219,10 @@ def test_calculate_crafting_cost_recursive_recipe():
     assert swiftness["source"] in ["crafted", "auction"]
 
 
-def test_vendor_items_in_recipes():
+@pytest.mark.unit
+def test_vendor_items_in_recipes(sample_market_data):
     """Test that vendor items are correctly priced and marked in recipes."""
-    df = create_sample_market_data()
+    df = sample_market_data
     lookup = build_recipe_lookup()
 
     # Test Crystal Vial in Greater Fire Protection Potion
@@ -256,9 +246,10 @@ def test_vendor_items_in_recipes():
     assert leaded_vial["unit_price"] == 0.04
 
 
-def test_profit_calculation():
+@pytest.mark.unit
+def test_profit_calculation(sample_market_data):
     """Test that profit is calculated correctly."""
-    df = create_sample_market_data()
+    df = sample_market_data
     lookup = build_recipe_lookup()
 
     recipe = lookup["13457"]  # Greater Fire Protection Potion
@@ -272,9 +263,10 @@ def test_profit_calculation():
         assert abs(result["profit_pct"] - expected_pct) < 0.1
 
 
-def test_get_profitable_recipes():
+@pytest.mark.unit
+def test_get_profitable_recipes(sample_market_data):
     """Test getting list of profitable recipes."""
-    df = create_sample_market_data()
+    df = sample_market_data
 
     # Get recipes with any profit
     profitable = get_profitable_recipes(df, min_profit_pct=0)
@@ -289,9 +281,10 @@ def test_get_profitable_recipes():
             assert profitable[i]["profit"] >= profitable[i + 1]["profit"]
 
 
-def test_get_profitable_recipes_high_threshold():
+@pytest.mark.unit
+def test_get_profitable_recipes_high_threshold(sample_market_data):
     """Test filtering recipes by profit threshold."""
-    df = create_sample_market_data()
+    df = sample_market_data
 
     low_threshold = get_profitable_recipes(df, min_profit_pct=0)
     high_threshold = get_profitable_recipes(df, min_profit_pct=50)
@@ -300,6 +293,7 @@ def test_get_profitable_recipes_high_threshold():
     assert len(high_threshold) <= len(low_threshold)
 
 
+@pytest.mark.unit
 def test_missing_reagent_prices():
     """Test handling of recipes with missing market data."""
     # Create minimal dataframe with only one item
@@ -321,9 +315,10 @@ def test_missing_reagent_prices():
     assert isinstance(result["missing_prices"], list)
 
 
-def test_recipe_with_quantities():
+@pytest.mark.unit
+def test_recipe_with_quantities(sample_market_data):
     """Test that reagent quantities are correctly multiplied in cost."""
-    df = create_sample_market_data()
+    df = sample_market_data
     lookup = build_recipe_lookup()
 
     # Elixir of the Mongoose uses 2x Gromsblood and 2x Plaguebloom

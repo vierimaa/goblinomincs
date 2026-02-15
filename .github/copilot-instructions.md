@@ -49,6 +49,41 @@ When generating code or suggestions:
 - For tests, add **pytest** cases under `tests/` and rely on fixtures/helpers where useful.
 - For AI extensions, recommend **LangChain + Ollama** or other local-only approaches.
 
+## Quality Assurance Workflow
+
+**After making any code changes, always perform these steps in order:**
+
+1. **Run pytest** to verify all tests pass:
+   ```bash
+   uv run pytest -v
+   ```
+   - All 40 tests must pass (100% success rate required)
+   - Check for any test failures or errors
+   - Use `uv run pytest -m unit` for faster feedback during development
+
+2. **Run ruff** to check code quality:
+   ```bash
+   uv run ruff check .
+   ```
+   - Fix any linting errors before proceeding
+   - Use `uv run ruff check --fix .` for auto-fixable issues
+   - Ensure zero errors before committing
+
+3. **Update README.md** if needed:
+   - Check if changes affect user-facing features, commands, or configuration
+   - Update relevant sections (Features, Usage, Project Structure, Recent Improvements)
+   - Update test counts if tests were added/removed
+   - Update code examples if APIs changed
+   - Run `uv run ruff check README.md` to verify formatting
+
+**When to update README.md:**
+- New features or commands added
+- CLI interface changes
+- New dependencies or requirements
+- Test suite changes (count, organization, coverage)
+- Configuration file changes (pytest.ini, pyproject.toml)
+- Breaking changes or deprecations
+
 ## CLI Expectations
 
 - The interactive menu is in `cli.py` and already wired to load data once per session.
