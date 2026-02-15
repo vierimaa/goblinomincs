@@ -1,9 +1,10 @@
 import json
-from pathlib import Path
-import requests
-import pandas as pd
-from rich.console import Console
 from datetime import datetime, timedelta
+from pathlib import Path
+
+import pandas as pd
+import requests
+from rich.console import Console
 
 console = Console()
 
@@ -16,8 +17,7 @@ def fetch_auction_history(item_id: int, realm: str = "ambershire", period: str =
     response = requests.get(url)
     response.raise_for_status()
 
-    data = response.json()
-    return data
+    return response.json()
 
 
 def is_recent(file_path: Path, hours: int = 4) -> bool:

@@ -1,7 +1,7 @@
 """Tests for market data loading functions."""
 
-import pandas as pd
 from pathlib import Path
+
 from goblinomincs.market_data import load_item_names
 
 
@@ -16,19 +16,13 @@ def test_load_item_names():
     assert len(items) > 0
 
     # Check that keys are strings (item IDs)
-    for item_id in items.keys():
+    for item_id in items:
         assert isinstance(item_id, str)
 
     # Check that values are strings (item names)
     for item_name in items.values():
         assert isinstance(item_name, str)
         assert len(item_name) > 0
-
-
-def test_items_json_exists():
-    """Test that items.json file exists."""
-    items_file = Path("data/items.json")
-    assert items_file.exists(), "data/items.json file not found"
 
 
 def test_market_data_directory_exists():

@@ -1,16 +1,17 @@
 """CLI interface for WoW Gold AI market analysis."""
 
 from rich.console import Console
-from rich.table import Table
-from rich.prompt import Prompt
 from rich.panel import Panel
+from rich.prompt import Prompt
+from rich.table import Table
 
-from goblinomincs.market_data import load_all_market_data, load_item_names
 from goblinomincs.analyze_market_data import (
     analyze_item,
     show_buy_sell_now_opportunities,
     show_profitable_crafts,
+    show_recipes_by_source,
 )
+from goblinomincs.market_data import load_all_market_data, load_item_names
 
 console = Console()
 
@@ -30,8 +31,9 @@ def interactive_menu():
             "[1] Market Summary (30-day overview)\n"
             "[2] Buy/Sell Opportunities (immediate actions)\n"
             "[3] Profitable Crafts (recipe profitability)\n"
-            "[4] Show All Views\n"
-            "[5] Exit",
+            "[4] Recipes by Profession (all recipes organized by source)\n"
+            "[5] Show All Views\n"
+            "[6] Exit",
             title="[bold cyan]Select Analysis View[/bold cyan]",
             border_style="cyan",
         )
@@ -39,7 +41,7 @@ def interactive_menu():
 
         choice = Prompt.ask(
             "[cyan]Enter your choice[/cyan]",
-            choices=["1", "2", "3", "4", "5"],
+            choices=["1", "2", "3", "4", "5", "6"],
             default="1",
         )
 
@@ -59,7 +61,7 @@ def interactive_menu():
             table.add_column("Gold Profit", justify="right")
             table.add_column("Flip Profit", justify="right")
 
-            for item_id, item_name in items.items():
+            for _item_id, item_name in items.items():
                 stats = analyze_item(df, item_name)
                 if not stats:
                     continue
@@ -67,19 +69,25 @@ def interactive_menu():
                 trend_color = (
                     "green"
                     if stats["trend"] > 0
-                    else "red" if stats["trend"] < 0 else "white"
+                    else "red"
+                    if stats["trend"] < 0
+                    else "white"
                 )
                 flip_color = (
                     "green"
                     if stats["flip_profit"] > 10
-                    else "yellow" if stats["flip_profit"] > 5 else "white"
+                    else "yellow"
+                    if stats["flip_profit"] > 5
+                    else "white"
                 )
 
                 gold_profit = stats["best_sell_price"] - stats["best_buy_price"]
                 gold_color = (
                     "green"
                     if gold_profit > 1
-                    else "yellow" if gold_profit > 0.5 else "white"
+                    else "yellow"
+                    if gold_profit > 0.5
+                    else "white"
                 )
 
                 table.add_row(
@@ -114,9 +122,14 @@ def interactive_menu():
             show_profitable_crafts(df, min_profit_pct=min_profit_value)
 
         elif choice == "4":
+            # Recipes by Profession
+            show_recipes_by_source(df)
+
+        elif choice == "5":
             # Show all views
             show_buy_sell_now_opportunities(df, items)
             show_profitable_crafts(df, min_profit_pct=5.0)
+            show_recipes_by_source(df)
 
             # Market summary
             console.print("\n")
@@ -132,7 +145,7 @@ def interactive_menu():
             table.add_column("Gold Profit", justify="right")
             table.add_column("Flip Profit", justify="right")
 
-            for item_id, item_name in items.items():
+            for _item_id, item_name in items.items():
                 stats = analyze_item(df, item_name)
                 if not stats:
                     continue
@@ -140,19 +153,25 @@ def interactive_menu():
                 trend_color = (
                     "green"
                     if stats["trend"] > 0
-                    else "red" if stats["trend"] < 0 else "white"
+                    else "red"
+                    if stats["trend"] < 0
+                    else "white"
                 )
                 flip_color = (
                     "green"
                     if stats["flip_profit"] > 10
-                    else "yellow" if stats["flip_profit"] > 5 else "white"
+                    else "yellow"
+                    if stats["flip_profit"] > 5
+                    else "white"
                 )
 
                 gold_profit = stats["best_sell_price"] - stats["best_buy_price"]
                 gold_color = (
                     "green"
                     if gold_profit > 1
-                    else "yellow" if gold_profit > 0.5 else "white"
+                    else "yellow"
+                    if gold_profit > 0.5
+                    else "white"
                 )
 
                 table.add_row(
@@ -168,7 +187,7 @@ def interactive_menu():
 
             console.print(table)
 
-        elif choice == "5":
+        elif choice == "6":
             # Exit
             console.print(
                 "[cyan]Thanks for using Goblinomincs! Good luck with your gold making![/cyan]"

@@ -15,10 +15,12 @@ A Python-based World of Warcraft Classic auction house analysis tool that helps 
 - **Gold Profit Calculations**: Shows actual gold profit potential, not just percentages
 
 ### ⚗️ Crafting Profitability
-- **Recipe Analysis**: Calculate profit margins for 11+ alchemy recipes
+- **Recipe Analysis**: Calculate profit margins for 13 alchemy recipes
+- **Recursive Costing**: Smart cost calculation that compares crafting vs buying reagents
 - **Current vs Weekly Averages**: Compare current costs to 7-day averages for timing decisions
-- **Vendor Item Support**: Handles fixed-price vendor materials (Crystal Vial)
-- **Material Cost Breakdown**: See individual reagent costs and total crafting expenses
+- **Vendor Item Support**: Handles fixed-price vendor materials (Crystal Vial, Leaded Vial)
+- **Material Cost Breakdown**: See individual reagent costs, sources (vendor/crafted/auction), and total crafting expenses
+- **Recipes by Profession**: View all recipes organized by source with cost analysis
 
 ### 🎨 Interactive CLI
 - **Menu-Driven Interface**: Easy navigation through analysis views
@@ -74,8 +76,9 @@ uv run goblinomincs
 1. **Market Summary** - 30-day overview with trends and flip profits
 2. **Buy/Sell Opportunities** - Immediate trading recommendations
 3. **Profitable Crafts** - Recipe profitability with cost breakdowns
-4. **Show All Views** - Complete analysis at once
-5. **Exit**
+4. **Recipes by Profession** - All recipes organized by source (Alchemy)
+5. **Show All Views** - Complete analysis at once
+6. **Exit**
 
 ### Direct Analysis Scripts
 
@@ -103,15 +106,16 @@ goblinomincs/
 │       ├── recipe_analysis.py      # Crafting profitability
 │       └── vendor_items.py         # Vendor item handling
 ├── data/
-│   ├── items.json              # Tracked item definitions (52 items)
-│   ├── recipes.json            # Crafting recipes (11 alchemy recipes)
-│   ├── vendor_items.json       # Fixed-price vendor items
+│   ├── items.json              # Tracked item definitions (63 items)
+│   ├── recipes.json            # Crafting recipes (13 alchemy recipes)
+│   ├── vendor_items.json       # Fixed-price vendor items (Crystal Vial, Leaded Vial)
 │   └── market_data/
 │       └── ambershire/         # Hourly price data (CSV files)
-├── tests/                      # Pytest test suite
+├── tests/                      # Pytest test suite (28 tests)
+│   ├── test_analyze_market_data.py
 │   ├── test_market_data.py
-│   ├── test_vendor_items.py
-│   └── test_analyze_market_data.py
+│   ├── test_recipe_analysis.py # Recursive costing and recipe tests
+│   └── test_vendor_items.py
 ├── pyproject.toml              # Project dependencies (PEP 621)
 └── pytest.ini                  # Test configuration
 ```
@@ -129,12 +133,16 @@ Core analysis functions:
 - `show_profitable_crafts()` - Display recipe profitability
 
 ### `goblinomincs.recipe_analysis`
-Crafting economics:
+Crafting economics with recursive costing:
 - `calculate_crafting_cost()` - Compute current and 7-day average costs/profits
+- `get_best_reagent_price()` - Smart price selection (vendor/crafted/auction)
 - `get_profitable_recipes()` - Return sorted list of profitable recipes
+- Supports nested recipes (e.g., Potion of Quickness uses Swiftness Potion)
 
 ### `goblinomincs.vendor_items`
-Handle items with fixed vendor prices (e.g., Crystal Vial at 0.2g).
+Handle items with fixed vendor prices:
+- Crystal Vial: 0.2g
+- Leaded Vial: 0.04g
 
 ## Development
 
@@ -157,17 +165,41 @@ uv run pytest --cov
 
 ### Running Tests
 
-The project includes pytest tests for core functionality:
+The project includes 28 pytest tests covering core functionality:
 ```bash
 # Run all tests
 uv run pytest
 
 # Run specific test file
-uv run pytest tests/test_market_data.py
+uv run pytest tests/test_recipe_analysis.py
 
 # Verbose output
 uv run pytest -v
+
+# With coverage
+uv run pytest --cov=goblinomincs --cov-report=term-missing
 ```
+
+### Code Quality
+
+The project uses [Ruff](https://docs.astral.sh/ruff/) for linting and formatting:
+
+```bash
+# Check for linting issues
+uv run ruff check src/ tests/
+
+# Auto-fix issues
+uv run ruff check src/ tests/ --fix
+
+# Format code
+uv run ruff format src/ tests/
+```
+
+**Ruff Configuration** (in `pyproject.toml`):
+- Line length: 88 (Black-compatible)
+- Target: Python 3.10+
+- Enabled rules: PEP 8, import sorting, type hints, pathlib usage, code simplifications
+- Replaces: flake8, black, isort, pyupgrade
 
 ### Adding New Items
 

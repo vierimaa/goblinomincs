@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-from typing import Optional
 
 VENDOR_ITEMS_FILE = Path("data/vendor_items.json")
 
@@ -13,11 +12,11 @@ def load_vendor_items() -> dict:
     Returns:
         dict: Dictionary mapping item IDs to vendor item data
     """
-    with open(VENDOR_ITEMS_FILE, "r", encoding="utf-8") as f:
+    with VENDOR_ITEMS_FILE.open(encoding="utf-8") as f:
         return json.load(f)["vendor_items"]
 
 
-def get_vendor_price(item_id: str) -> Optional[float]:
+def get_vendor_price(item_id: str) -> float | None:
     """Get the vendor price for an item if it's a vendor item.
 
     Args:

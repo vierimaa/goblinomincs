@@ -1,16 +1,15 @@
 ---
-name: Code Review
+name: code-review
 description: Reviews code changes for bugs, style issues, and best practices. Use when reviewing PRs or checking code quality.
-version: 1.0.0
-triggers:
-  - "Review this PR"
-  - "Do a code review"
-  - "Can you review my changes?"
-  - "Check code quality"
-  - "Any bugs in these changes?"
 ---
 
 # Code Review
+
+## When to Use This Skill
+
+- User asks for a code review of recent changes.
+- User wants feedback on code quality, correctness, or style.
+- User is preparing a PR and wants a pre-review check.
 
 ## Goal
 
@@ -25,7 +24,7 @@ Review code changes with a focus on:
 
 Prefer reviewing the actual diff (what changed) rather than only reading current file contents.
 
-### 1) Determine review scope
+### 1 Determine review scope
 
 1. Identify what you are reviewing:
   - Local working tree changes, or
@@ -36,7 +35,7 @@ Prefer reviewing the actual diff (what changed) rather than only reading current
   - `git diff <base>...HEAD --stat`
   - `git diff <base>...HEAD`
 
-### 2) Summarize what changed
+### 2 Summarize what changed
 
 1. Run:
 
@@ -44,7 +43,7 @@ Prefer reviewing the actual diff (what changed) rather than only reading current
   - `git diff --cached --stat`
 2. Provide a 3–6 bullet summary of the intent of the changes.
 
-### 3) Review checklist (apply to the diff)
+### 3 Review checklist (apply to the diff)
 
 #### Correctness
 
@@ -73,7 +72,7 @@ Prefer reviewing the actual diff (what changed) rather than only reading current
 - Avoid repeated file reads; prefer loading once and passing DataFrames through.
 - Watch for N^2 operations on large datasets.
 
-### 4) Scan for common foot-guns
+### 4 Scan for common foot-guns
 
 Use diff + grep/search tools available in your shell/editor to flag:
 
@@ -86,7 +85,7 @@ Examples (PowerShell):
 - `git diff | Select-String -Pattern "breakpoint\(|print\(|TODO|FIXME"`
 - `git diff --cached | Select-String -Pattern "breakpoint\(|print\(|TODO|FIXME"`
 
-### 5) Basic validation
+### 5 Basic validation
 
 1. Run unit tests:
   - `uv run pytest`

@@ -1,7 +1,6 @@
 """Tests for vendor items functionality."""
 
-from pathlib import Path
-from goblinomincs.vendor_items import load_vendor_items, get_vendor_price
+from goblinomincs.vendor_items import get_vendor_price, load_vendor_items
 
 
 def test_load_vendor_items():
@@ -29,6 +28,14 @@ def test_get_vendor_price_crystal_vial():
     assert price == 0.2
 
 
+def test_get_vendor_price_leaded_vial():
+    """Test that Leaded Vial returns correct vendor price."""
+    # Leaded Vial (item ID 3372) should be 0.04g
+    price = get_vendor_price("3372")
+    assert price is not None
+    assert price == 0.04
+
+
 def test_get_vendor_price_non_vendor_item():
     """Test that non-vendor items return None."""
     # Arcane Crystal (12363) is not a vendor item
@@ -36,7 +43,4 @@ def test_get_vendor_price_non_vendor_item():
     assert price is None
 
 
-def test_vendor_items_json_exists():
-    """Test that vendor_items.json file exists."""
-    vendor_file = Path("data/vendor_items.json")
-    assert vendor_file.exists(), "data/vendor_items.json file not found"
+# File existence is implicitly tested by test_load_vendor_items

@@ -1,8 +1,11 @@
 """Tests for market analysis functions."""
 
 import pandas as pd
-from datetime import datetime, timedelta
-from goblinomincs.analyze_market_data import analyze_daily_patterns, analyze_buy_sell_now
+
+from goblinomincs.analyze_market_data import (
+    analyze_buy_sell_now,
+    analyze_daily_patterns,
+)
 
 
 def create_sample_item_data():
@@ -14,8 +17,7 @@ def create_sample_item_data():
         "min_buy": [9.5 + i * 0.1 for i in range(len(dates))],
         "available": [50] * len(dates),
     }
-    df = pd.DataFrame(data, index=dates)
-    return df
+    return pd.DataFrame(data, index=dates)
 
 
 def test_analyze_daily_patterns():

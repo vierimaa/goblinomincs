@@ -111,6 +111,27 @@
         { "id": 12363, "name": "Arcane Crystal", "quantity": 1 },
         { "id": 12359, "name": "Thorium Bar", "quantity": 1 }
       ]
+    },
+    {
+      "id": 61181,
+      "source": "Alchemy",
+      "name": "Potion of Quickness",
+      "reagents": [
+        { "id": 8846, "name": "Gromsblood", "quantity": 1 },
+        { "id": 13465, "name": "Mountain Silversage", "quantity": 1 },
+        { "id": 2459, "name": "Swiftness Potion", "quantity": 1 },
+        { "id": 3371, "name": "Crystal Vial", "quantity": 1 }
+      ]
+    },
+    {
+      "id": 2459,
+      "source": "Alchemy",
+      "name": "Swiftness Potion",
+      "reagents": [
+        { "id": 2452, "name": "Swiftthistle", "quantity": 1 },
+        { "id": 2450, "name": "Briarthorn", "quantity": 1 },
+        { "id": 3372, "name": "Leaded Vial", "quantity": 1 }
+      ]
     }
   ]
 }

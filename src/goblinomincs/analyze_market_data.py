@@ -1,8 +1,13 @@
+import pandas as pd
 from rich.console import Console
 from rich.table import Table
-import pandas as pd
+
 from goblinomincs.market_data import load_all_market_data, load_item_names
-from goblinomincs.recipe_analysis import get_profitable_recipes
+from goblinomincs.recipe_analysis import (
+    calculate_crafting_cost,
+    get_profitable_recipes,
+    load_recipes,
+)
 
 console = Console()
 
@@ -148,7 +153,7 @@ def show_buy_sell_now_opportunities(df: pd.DataFrame, items: dict):
     sell_opportunities = []
 
     # Analyze all items
-    for item_id, item_name in items.items():
+    for _item_id, item_name in items.items():
         analysis = analyze_buy_sell_now(df, item_name)
         if not analysis:
             continue
@@ -248,7 +253,9 @@ def show_profitable_crafts(df: pd.DataFrame, min_profit_pct: float = 5):
         profit_color = (
             "green"
             if craft["profit"] > 1
-            else "yellow" if craft["profit"] > 0.5 else "white"
+            else "yellow"
+            if craft["profit"] > 0.5
+            else "white"
         )
 
         craft_table.add_row(
@@ -303,6 +310,96 @@ def show_profitable_crafts(df: pd.DataFrame, min_profit_pct: float = 5):
         )
 
 
+def show_recipes_by_source(df: pd.DataFrame):
+    """Display all recipes organized by source (profession) with costs and prices."""
+    recipes = load_recipes()
+
+    # Group recipes by source
+    recipes_by_source = {}
+    for recipe in recipes:
+        source = recipe.get("source", "Unknown")
+        if source not in recipes_by_source:
+            recipes_by_source[source] = []
+        recipes_by_source[source].append(recipe)
+
+    # Display tables for each source/profession
+    for source, source_recipes in sorted(recipes_by_source.items()):
+        console.print(f"\n[bold cyan]{source}[/bold cyan]")
+
+        table = Table(
+            title=f"{source} Recipes - Cost Analysis",
+            title_style="cyan",
+        )
+        table.add_column("Recipe", justify="left", style="white")
+        table.add_column("Craft Cost", justify="right")
+        table.add_column("Market Price", justify="right")
+        table.add_column("Profit", justify="right")
+        table.add_column("ROI %", justify="right")
+        table.add_column("Status", justify="center")
+
+        for recipe in sorted(source_recipes, key=lambda r: r["name"]):
+            analysis = calculate_crafting_cost(recipe, df)
+
+            # Handle missing prices
+            if analysis["current_price"] is None:
+                table.add_row(
+                    analysis["recipe_name"],
+                    f"{analysis['total_cost']:.2f}g"
+                    if analysis["total_cost"] > 0
+                    else "N/A",
+                    "[dim]No data[/dim]",
+                    "—",
+                    "—",
+                    "[dim]❌[/dim]",
+                )
+                continue
+
+            if analysis["missing_prices"]:
+                missing_count = len(analysis["missing_prices"])
+                table.add_row(
+                    analysis["recipe_name"],
+                    f"[dim]{analysis['total_cost']:.2f}g+[/dim]",
+                    f"{analysis['current_price']:.2f}g",
+                    "[dim]Incomplete[/dim]",
+                    "—",
+                    f"[yellow]⚠ {missing_count}[/yellow]",
+                )
+                continue
+
+            # Full data available
+            profit = analysis["profit"]
+            roi = analysis["profit_pct"]
+
+            # Color coding
+            profit_color = "green" if profit > 1 else "yellow" if profit > 0 else "red"
+            roi_color = (
+                "green"
+                if roi > 20
+                else "yellow"
+                if roi > 5
+                else "white"
+                if roi > 0
+                else "red"
+            )
+            status_icon = "✓" if profit > 0 else "✗"
+            status_color = "green" if profit > 0 else "red"
+
+            table.add_row(
+                analysis["recipe_name"],
+                f"{analysis['total_cost']:.2f}g",
+                f"{analysis['current_price']:.2f}g",
+                f"[{profit_color}]{profit:+.2f}g[/{profit_color}]",
+                f"[{roi_color}]{roi:+.1f}%[/{roi_color}]",
+                f"[{status_color}]{status_icon}[/{status_color}]",
+            )
+
+        console.print(table)
+
+    console.print(
+        "\n[dim]Status: ✓ = Profitable | ✗ = Loss | ⚠ = Missing reagent prices | ❌ = No market data[/dim]"
+    )
+
+
 def main():
     # Load all market data at once
     console.print("[cyan]Loading market data...[/cyan]")
@@ -328,7 +425,7 @@ def main():
     table.add_column("Gold Profit", justify="right")
     table.add_column("Flip Profit", justify="right")
 
-    for item_id, item_name in items.items():
+    for _item_id, item_name in items.items():
         stats = analyze_item(df, item_name)
         if not stats:
             continue
@@ -336,11 +433,13 @@ def main():
         trend_color = (
             "green" if stats["trend"] > 0 else "red" if stats["trend"] < 0 else "white"
         )
-        flip_color = (
-            "green"
-            if stats["flip_profit"] > 10
-            else "yellow" if stats["flip_profit"] > 5 else "white"
-        )
+
+        if stats["flip_profit"] > 10:
+            flip_color = "green"
+        elif stats["flip_profit"] > 5:
+            flip_color = "yellow"
+        else:
+            flip_color = "white"
 
         # Calculate raw gold profit
         gold_profit = stats["best_sell_price"] - stats["best_buy_price"]

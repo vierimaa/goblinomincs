@@ -4,6 +4,11 @@
       "name": "Crystal Vial",
       "vendor_price": 0.2,
       "description": "Purchased from alchemy suppliers"
+    },
+    "3372": {
+      "name": "Leaded Vial",
+      "vendor_price": 0.04,
+      "description": "Purchased from alchemy suppliers"
     }
   }
 }
