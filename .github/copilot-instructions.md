@@ -32,6 +32,38 @@ Future roadmap includes optional **local LLM (Ollama)** integrations for natural
 - `data/market_data/ambershire/*.csv` – hourly market history (timestamp, bid, min_buy, avg_price, available).
 - `tests/` – pytest suite covering loaders and analysis helpers.
 
+## Architecture & Design Patterns
+
+Goblinomincs follows Python best practices and design patterns for maintainability and testability:
+
+### Separation of Concerns
+- **Calculation functions** return data structures (dicts, lists)
+- **Display functions** handle presentation (Rich tables, console output)
+- **Data loading** centralized in dedicated modules
+
+### Single Responsibility Principle
+Each module has a clear, focused purpose:
+- `data_loaders.py` - Generic JSON file loading
+- `market_data.py` - CSV market data loading and transformation
+- `recipe_analysis.py` - Crafting cost calculations
+- `analyze_market_data.py` - Market analysis computations
+- `cli.py` - User interface and menu navigation
+
+### Dependency Injection
+Functions accept optional parameters for testability:
+```python
+def load_item_names(items_file: Path | None = None) -> dict:
+    """Uses default path if not provided"""
+    
+def show_profitable_crafts(df, min_profit_pct=5, console_inst=None):
+    """Uses module console if not provided"""
+```
+
+### Error Handling
+- Library functions raise exceptions for calling code to handle
+- Warning system for non-critical issues (missing data files)
+- User-facing CLI catches and displays errors gracefully
+
 ## Copilot Guidance
 
 When generating code or suggestions:

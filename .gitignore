@@ -45,3 +45,5 @@ data/market_data/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+experiments/
