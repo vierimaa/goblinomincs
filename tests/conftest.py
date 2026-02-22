@@ -28,6 +28,8 @@ def sample_market_data():
         "Icecap": 0.6,
         "Potion of Quickness": 3.5,
         "Greater Fire Protection Potion": 2.5,
+        "Elemental Fire": 1.2,
+        "Firebloom": 0.3,
     }
 
     data_frames = []

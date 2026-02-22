@@ -30,7 +30,6 @@
     "7082": "Essence of Air",
     "12808": "Essence of Undeath",
     "12803": "Living Essence",
-    "12804": "Powerful Mojo",
     "13464": "Golden Sansam",
     "13463": "Dreamfoil",
     "13465": "Mountain Silversage",
@@ -38,7 +37,6 @@
     "13467": "Icecap",
     "13468": "Black Lotus",
     "8838": "Sungrass",
-    "8839": "Blindweed",
     "8846": "Gromsblood",
     "8845": "Ghost Mushroom",
     "3818": "Fadeleaf",
@@ -52,6 +50,7 @@
     "13459": "Greater Shadow Protection Potion",
     "13461": "Greater Arcane Protection Potion",
     "12359": "Thorium Bar",
+    "10620": "Thorium Ore",
     "11137": "Vision Dust",
     "16202": "Lesser Eternal Essence",
     "16203": "Greater Eternal Essence",
@@ -62,6 +61,17 @@
     "61181": "Potion of Quickness",
     "2459": "Swiftness Potion",
     "2452": "Swiftthistle",
-    "2450": "Briarthorn"
+    "2450": "Briarthorn",
+    "7067": "Elemental Earth",
+    "7068": "Elemental Fire",
+    "7069": "Elemental Water",
+    "7070": "Elemental Air",
+    "47412": "Concoction of the Arcane Giant",
+    "47414": "Concoction of the Dreamwater",
+    "61423": "Dreamtonic",
+    "11176": "Dream Dust",
+    "55046": "Elixir of Greater Frost Power",
+    "3819": "Wintersbite",
+    "3358": "Khadgar's Whisker"
   }
 }

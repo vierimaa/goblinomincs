@@ -9,6 +9,11 @@
       "name": "Leaded Vial",
       "vendor_price": 0.04,
       "description": "Purchased from alchemy suppliers"
+    },
+    "18256": {
+      "name": "Imbued Vial",
+      "vendor_price": 0.49,
+      "description": "Purchased from alchemy suppliers"
     }
   }
 }

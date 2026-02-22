@@ -20,6 +20,7 @@ wheels/
 .installed.cfg
 *.egg
 .pytest_cache/
+.coverage
 
 # Poetry
 poetry.lock
@@ -40,10 +41,9 @@ ENV/
 data/market_data/
 *.csv
 *.log
+experiments/
 
 # OS specific
 .DS_Store
 Thumbs.db
 desktop.ini
-
-experiments/

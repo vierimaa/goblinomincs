@@ -2,7 +2,6 @@ import pandas as pd
 from rich.console import Console
 from rich.table import Table
 
-from goblinomincs.market_data import load_all_market_data, load_item_names
 from goblinomincs.recipe_analysis import (
     calculate_crafting_cost,
     get_profitable_recipes,
@@ -123,6 +122,9 @@ def analyze_item(df: pd.DataFrame, item_name: str) -> dict:
     # Average over full period (30d)
     avg_30d = item_df["avg_price"].mean()
 
+    # Current latest price
+    latest_price = item_df.iloc[-1]["avg_price"]
+
     # Calculate 7-day stats using efficient datetime indexing
     cutoff_date = item_df.index.max() - pd.Timedelta(days=7)
     avg_7d = item_df.loc[item_df.index >= cutoff_date, "avg_price"].mean()
@@ -135,6 +137,7 @@ def analyze_item(df: pd.DataFrame, item_name: str) -> dict:
 
     return {
         "item_name": item_name,
+        "latest_price": latest_price,
         "avg_30d": avg_30d,
         "avg_7d": avg_7d,
         "trend": trend,
@@ -503,68 +506,3 @@ def show_recipes_by_source(
     console_to_use = console_inst or console
     recipes_by_source = get_recipes_by_source(df)
     display_recipes_by_source(recipes_by_source, console_to_use)
-
-
-def main():
-    # Load all market data at once
-    console.print("[cyan]Loading market data...[/cyan]")
-    df = load_all_market_data()
-
-    items = load_item_names()
-
-    # Show buy/sell now opportunities first
-    show_buy_sell_now_opportunities(df, items)
-
-    # Show profitable crafting opportunities
-    show_profitable_crafts(df, min_profit_pct=5)
-
-    # Show full market summary
-    console.print("\n")
-    table = Table(title="Auction House Market Summary - Last 30 Days (Ambershire)")
-    table.add_column("Item", justify="left")
-    table.add_column("Avg (30d)", justify="right")
-    table.add_column("Avg (7d)", justify="right")
-    table.add_column("7d vs 30d", justify="right")
-    table.add_column("Best Buy", justify="right")
-    table.add_column("Best Sell", justify="right")
-    table.add_column("Gold Profit", justify="right")
-    table.add_column("Flip Profit", justify="right")
-
-    for _item_id, item_name in items.items():
-        stats = analyze_item(df, item_name)
-        if not stats:
-            continue
-
-        trend_color = (
-            "green" if stats["trend"] > 0 else "red" if stats["trend"] < 0 else "white"
-        )
-
-        if stats["flip_profit"] > 10:
-            flip_color = "green"
-        elif stats["flip_profit"] > 5:
-            flip_color = "yellow"
-        else:
-            flip_color = "white"
-
-        # Calculate raw gold profit
-        gold_profit = stats["best_sell_price"] - stats["best_buy_price"]
-        gold_color = (
-            "green" if gold_profit > 1 else "yellow" if gold_profit > 0.5 else "white"
-        )
-
-        table.add_row(
-            stats["item_name"],
-            f"{stats['avg_30d']:.2f}g",
-            f"{stats['avg_7d']:.2f}g" if stats["avg_7d"] else "N/A",
-            f"[{trend_color}]{stats['trend']:+.2f}%[/{trend_color}]",
-            f"{stats['best_buy_day'][:3]} ({stats['best_buy_price']:.2f}g)",
-            f"{stats['best_sell_day'][:3]} ({stats['best_sell_price']:.2f}g)",
-            f"[{gold_color}]{gold_profit:+.2f}g[/{gold_color}]",
-            f"[{flip_color}]{stats['flip_profit']:+.1f}%[/{flip_color}]",
-        )
-
-    console.print(table)
-
-
-if __name__ == "__main__":
-    main()

@@ -192,7 +192,7 @@ def test_calculate_crafting_cost_simple_recipe(sample_market_data):
     assert result["total_cost_7d"] > 0
     assert result["current_price"] is not None
     assert isinstance(result["reagent_costs"], list)
-    assert len(result["reagent_costs"]) == 4  # 4 reagents
+    assert len(result["reagent_costs"]) == 3  # 3 reagents
 
 
 @pytest.mark.unit
@@ -321,17 +321,17 @@ def test_recipe_with_quantities(sample_market_data):
     df = sample_market_data
     lookup = build_recipe_lookup()
 
-    # Elixir of the Mongoose uses 2x Gromsblood and 2x Plaguebloom
+    # Elixir of the Mongoose uses 2x Mountain Silversage and 2x Plaguebloom
     recipe = lookup["13452"]
     result = calculate_crafting_cost(recipe, df)
 
-    gromsblood = None
+    mountain_silversage = None
     for reagent in result["reagent_costs"]:
-        if reagent["name"] == "Gromsblood":
-            gromsblood = reagent
+        if reagent["name"] == "Mountain Silversage":
+            mountain_silversage = reagent
             break
 
-    assert gromsblood is not None
-    assert gromsblood["quantity"] == 2
-    expected_cost = gromsblood["unit_price"] * 2
-    assert abs(gromsblood["total_cost"] - expected_cost) < 0.01
+    assert mountain_silversage is not None
+    assert mountain_silversage["quantity"] == 2
+    expected_cost = mountain_silversage["unit_price"] * 2
+    assert abs(mountain_silversage["total_cost"] - expected_cost) < 0.01

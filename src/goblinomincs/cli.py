@@ -1,4 +1,4 @@
-"""CLI interface for WoW Gold AI market analysis."""
+"""CLI interface for WoW Gold market analysis."""
 
 from rich.console import Console
 from rich.panel import Panel
@@ -28,6 +28,7 @@ def build_market_summary_table(df, items: dict) -> Table:
     """
     table = Table(title="Auction House Market Summary - Last 30 Days (Ambershire)")
     table.add_column("Item", justify="left")
+    table.add_column("Latest Price", justify="left")
     table.add_column("Avg (30d)", justify="right")
     table.add_column("Avg (7d)", justify="right")
     table.add_column("7d vs 30d", justify="right")
@@ -59,6 +60,7 @@ def build_market_summary_table(df, items: dict) -> Table:
 
         table.add_row(
             stats["item_name"],
+            f"{stats['latest_price']:.2f}g",
             f"{stats['avg_30d']:.2f}g",
             f"{stats['avg_7d']:.2f}g" if stats["avg_7d"] else "N/A",
             f"[{trend_color}]{stats['trend']:+.2f}%[/{trend_color}]",
