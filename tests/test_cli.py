@@ -1,10 +1,9 @@
 """Tests for CLI presentation logic."""
 
+import pytest
 from rich.table import Table
 
-import pytest
-
-from goblinomincs.cli import build_market_summary_table
+from goblinomincs.display import get_market_summary_tables
 
 
 @pytest.mark.integration
@@ -23,7 +22,7 @@ def test_market_summary_split_by_category(sample_market_data):
         "2459": {"name": "Swiftness Potion", "category": "Alchemy"},
     }
 
-    result = build_market_summary_table(df, items_map)
+    result = get_market_summary_tables(df, items_map)
 
     # Desired behaviour: return a dict mapping category -> Table
     assert isinstance(result, dict)

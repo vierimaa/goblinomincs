@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from goblinomincs.data_loaders import load_json_data
-from goblinomincs.vendor_items import get_vendor_price
+from goblinomincs.json_loader import load_json_data
+from goblinomincs.vendor_prices import get_vendor_price
 
 RECIPES_FILE = Path("data/recipes.json")
 

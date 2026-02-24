@@ -1,23 +1,32 @@
+"""Loads per-item CSV market history files into a combined DataFrame."""
+
 import warnings
 from pathlib import Path
 
 import pandas as pd
 
-from goblinomincs.data_loaders import load_json_data
+from goblinomincs.json_loader import load_json_data
 
 DATA_DIR = Path("data/market_data/ambershire")
 ITEMS_FILE = Path("data/items.json")
+
 
 def load_items(items_file: Path | None = None) -> dict:
     """Load the raw items mapping from items.json.
 
     Returns the raw mapping of item_id -> {"name": ..., "category": ...}.
+
+    Args:
+        items_file: Optional path to items.json file (uses default if None)
+
+    Returns:
+        dict: Dictionary mapping item IDs to item info dicts
     """
     file_path = items_file or ITEMS_FILE
     return load_json_data(file_path, key="items")
 
 
-def load_all_market_data(data_dir: Path | None = None, items_file: Path | None = None):
+def load_all_market_data(data_dir: Path | None = None, items_file: Path | None = None) -> pd.DataFrame:
     """Combine all CSVs in the market data folder into one DataFrame.
 
     Args:
@@ -25,7 +34,7 @@ def load_all_market_data(data_dir: Path | None = None, items_file: Path | None =
         items_file: Optional path to items.json file (uses default if None)
 
     Returns:
-        pd.DataFrame: Combined market data
+        pd.DataFrame: Combined market data with copper values converted to gold
 
     Raises:
         FileNotFoundError: If no valid market data files are found
@@ -74,7 +83,7 @@ def load_all_market_data(data_dir: Path | None = None, items_file: Path | None =
         price_columns = ["bid", "min_buy", "avg_price"]
         df[price_columns] = df[price_columns].div(10000)
 
-        # Add weekday information
+        # Add weekday and item metadata columns
         df["weekday"] = df.index.day_name()
         df["item_name"] = item_name
         df["item_id"] = item_id

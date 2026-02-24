@@ -24,7 +24,7 @@ dev = [
 
 [project.scripts]
 goblinomincs = "goblinomincs.cli:main"
-fetch-auction-data = "goblinomincs.fetch_auction_data:main"
+fetch-auction-data = "goblinomincs.fetcher:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

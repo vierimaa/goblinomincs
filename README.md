@@ -87,10 +87,6 @@ uv run goblinomincs
 uv run fetch-auction-data
 ```
 
-**Run Full Analysis:**
-```bash
-uv run python -m goblinomincs.analyze_market_data
-```
 
 ## Project Structure
 
@@ -99,26 +95,28 @@ goblinomincs/
 ├── src/
 │   └── goblinomincs/           # Main package
 │       ├── __init__.py
-│       ├── analyze_market_data.py  # Market analysis (calculation + presentation)
-│       ├── cli.py                  # Interactive menu interface
-│       ├── data_loaders.py         # Common JSON loading utilities
-│       ├── fetch_auction_data.py   # Data collection from API
-│       ├── market_data.py          # Data loading utilities
-│       ├── recipe_analysis.py      # Crafting profitability
-│       └── vendor_items.py         # Vendor item handling
+│       ├── market_analysis.py   # Market analysis (calculation only)
+│       ├── display.py           # Rich rendering / presenters
+│       ├── cli.py               # Interactive menu interface
+│       ├── json_loader.py       # Common JSON loading utilities (was data_loaders.py)
+│       ├── fetcher.py           # Data collection from API (was fetch_auction_data.py)
+│       ├── market_loader.py     # Market CSV loading utilities (was market_data.py)
+│       ├── recipe_analysis.py   # Crafting profitability
+│       └── vendor_prices.py     # Vendor item handling (was vendor_items.py)
 ├── data/
-│   ├── items.json              # Tracked item definitions (63 items)
+│   ├── items.json              # Tracked item definitions (63 items) — now nested objects
 │   ├── recipes.json            # Crafting recipes (13 alchemy recipes)
 │   ├── vendor_items.json       # Fixed-price vendor items (Crystal Vial, Leaded Vial)
 │   └── market_data/
 │       └── ambershire/         # Hourly price data (CSV files)
-├── tests/                      # Pytest test suite (40 tests)
+├── tests/                      # Pytest test suite (47 tests after refactor)
 │   ├── conftest.py             # Shared fixtures and test utilities
-│   ├── test_analyze_market_data.py
-│   ├── test_data_loaders.py    # Common data loader tests
-│   ├── test_market_data.py
+│   ├── test_fetcher.py         # Fetcher regression tests
+│   ├── test_json_loader.py
+│   ├── test_market_loader.py
+│   ├── test_market_analysis.py
 │   ├── test_recipe_analysis.py # Recursive costing and recipe tests
-│   └── test_vendor_items.py
+│   └── test_vendor_prices.py
 ├── pyproject.toml              # Project dependencies (PEP 621)
 └── pytest.ini                  # Test configuration
 ```
@@ -144,8 +142,6 @@ uv run pytest --cov
 ```
 
 ### Running Tests
-
-The project includes 40 pytest tests covering core functionality with 100% pass rate:
 
 ```bash
 # Run all tests with coverage
@@ -185,11 +181,6 @@ uv run ruff check --fix .
 uv run ruff format .
 ```
 
-**Ruff Configuration** (in `pyproject.toml`):
-- Line length: 88 (Black-compatible)
-- Target: Python 3.10+
-- Enabled rules: PEP 8, import sorting, type hints, pathlib usage, code simplifications
-- Replaces: flake8, black, isort, pyupgrade
 
 **Code Quality Standards:**
 - ✅ All code formatted with Ruff
@@ -202,11 +193,11 @@ uv run ruff format .
 
 ### Adding New Items
 
-Edit `data/items.json` to track additional items:
+Edit `data/items.json` to track additional items (values are nested objects with `name` and `category`):
 ```json
 {
   "items": {
-    "12345": "Item Name"
+    "12345": {"name": "Item Name", "category": "Misc"}
   }
 }
 ```

@@ -1,10 +1,10 @@
-"""Tests for market data loading functions."""
+"""Tests for market CSV data loading functions."""
 
 from pathlib import Path
 
 import pytest
 
-from goblinomincs.market_data import load_items
+from goblinomincs.market_loader import load_items
 
 
 @pytest.mark.integration
@@ -40,11 +40,10 @@ def test_market_data_directory_exists():
 
 
 @pytest.mark.integration
-@pytest.mark.integration
 def test_item_categories_present():
     """Verify categories exist for items in the mapping."""
     items_map = load_items()
-    for item_id, item_info in items_map.items():
+    for _item_id, item_info in items_map.items():
         assert "category" in item_info and isinstance(item_info["category"], str)
 
 
@@ -53,4 +52,3 @@ def test_item_categories_with_custom_path(items_file):
     items_map = load_items(items_file=items_file)
     assert isinstance(items_map, dict)
     assert len(items_map) > 0
-

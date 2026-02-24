@@ -1,8 +1,8 @@
-"""Tests for vendor items functionality."""
+"""Tests for vendor item price lookups."""
 
 import pytest
 
-from goblinomincs.vendor_items import get_vendor_price, load_vendor_items
+from goblinomincs.vendor_prices import get_vendor_price, load_vendor_items
 
 
 @pytest.mark.integration
@@ -10,10 +10,8 @@ def test_load_vendor_items():
     """Test that vendor_items.json loads correctly."""
     vendor_items = load_vendor_items()
 
-    # Check that it returns a dictionary
     assert isinstance(vendor_items, dict)
 
-    # Check structure of vendor items
     for item_id, item_data in vendor_items.items():
         assert isinstance(item_id, str)
         assert isinstance(item_data, dict)
@@ -53,6 +51,3 @@ def test_get_vendor_price_non_vendor_item():
     # Arcane Crystal (12363) is not a vendor item
     price = get_vendor_price("12363")
     assert price is None
-
-
-# File existence is implicitly tested by test_load_vendor_items

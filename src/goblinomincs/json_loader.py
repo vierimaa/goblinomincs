@@ -1,4 +1,4 @@
-"""Common data loading utilities."""
+"""Generic JSON file loading utilities."""
 
 import json
 from pathlib import Path

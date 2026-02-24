@@ -1,3 +1,9 @@
+"""Fetches fresh auction house market data from the wowauctions.net API and saves to CSV.
+
+Run this script before analysis to refresh local market data:
+    uv run fetch-auction-data
+"""
+
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -5,7 +11,7 @@ import pandas as pd
 import requests
 from rich.console import Console
 
-from goblinomincs.data_loaders import load_json_data
+from goblinomincs.json_loader import load_json_data
 
 console = Console()
 
@@ -170,7 +176,10 @@ def main(
     skipped_count = 0
     failed_count = 0
 
-    for item_id, item_name in items.items():
+    for item_id, item_info in items.items():
+        # items.json stores nested objects: {id: {"name": ..., "category": ...}}
+        item_name = item_info["name"]
+
         if not should_fetch_item(item_id, item_name, realm, refresh_hours):
             console.print(
                 f"[yellow]⏭️ Skipping item ID {item_id} - {item_name} (data is recent)[/yellow]"

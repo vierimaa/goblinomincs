@@ -22,10 +22,11 @@ Future roadmap includes optional **local LLM (Ollama)** integrations for natural
 
 ## Key Modules & Data
 
-- `analyze_market_data.py` – daily/hourly analysis, buy/sell signals, craft summaries.
-- `market_data.py` – loads CSV market snapshots into a combined DataFrame (converts copper→gold).
+- `market_analysis.py` – daily/hourly analysis and computation functions (pure data-in/data-out).
+- `display.py` – presentation layer: Rich tables and `show_*` presenters for CLI views.
+- `market_loader.py` – loads CSV market snapshots into a combined DataFrame (converts copper→gold).
 - `recipe_analysis.py` – computes crafting costs, 7-day averages, and profit metrics.
-- `vendor_items.py` – fixed-price vendor item lookups (e.g., Crystal Vial).
+- `vendor_prices.py` – fixed-price vendor item lookups (e.g., Crystal Vial) (renamed from `vendor_items.py`).
 - `cli.py` – interactive Rich-based menu for market summary, opportunities, and crafts.
 - `data/items.json` – tracked auction items (string IDs → item names).
 - `data/vendor_items.json` – vendor-priced items with gold values.
@@ -44,10 +45,11 @@ Goblinomincs follows Python best practices and design patterns for maintainabili
 
 ### Single Responsibility Principle
 Each module has a clear, focused purpose:
-- `data_loaders.py` - Generic JSON file loading
-- `market_data.py` - CSV market data loading and transformation
+- `json_loader.py` - Generic JSON file loading (was `data_loaders.py`)
+- `market_loader.py` - CSV market data loading and transformation (was `market_data.py`)
 - `recipe_analysis.py` - Crafting cost calculations
-- `analyze_market_data.py` - Market analysis computations
+- `market_analysis.py` - Market analysis computations (pure calculation)
+- `display.py` - Presentation / Rich table builders and `show_*` presenters
 - `cli.py` - User interface and menu navigation
 
 ### Dependency Injection
@@ -76,7 +78,6 @@ When generating code or suggestions:
   - 3-day average comparisons for buy/sell alerts.
   - Profit outputs in absolute gold **and** percentages when relevant.
 - Respect the Rich-based output style (tables, color-coded cells, readable headings).
-- For new features, prefer extending current modules (`analyze_market_data.py`, `recipe_analysis.py`, etc.) instead of creating new parallel flows.
 - Encourage structured return values (dicts/lists) that feed into tabular display.
 - When touching data paths, rely on `Path` and keep everything workspace-relative.
 - For tests, add **pytest** cases under `tests/` and rely on fixtures/helpers where useful.
@@ -117,4 +118,4 @@ When generating code or suggestions:
 - Don’t introduce heavy web frameworks or GUIs—this remains a CLI/data tool.
 - Don’t assume external network access unless explicitly requested.
 - Don’t hardcode absolute paths or server-specific details; keep Ambershire as default unless instructed.
-- Don’t duplicate logic already encapsulated in `market_data.py` or `recipe_analysis.py`.
+- Don’t duplicate logic already encapsulated in `market_loader.py`, `market_analysis.py`, or `recipe_analysis.py`.

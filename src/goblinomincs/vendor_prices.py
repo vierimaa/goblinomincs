@@ -1,8 +1,8 @@
-"""Utilities for handling vendor items with fixed prices."""
+"""Vendor item price lookups for items sold at fixed prices by NPCs."""
 
 from pathlib import Path
 
-from goblinomincs.data_loaders import load_json_data
+from goblinomincs.json_loader import load_json_data
 
 VENDOR_ITEMS_FILE = Path("data/vendor_items.json")
 
