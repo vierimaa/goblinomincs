@@ -8,15 +8,10 @@ from goblinomincs.data_loaders import load_json_data
 DATA_DIR = Path("data/market_data/ambershire")
 ITEMS_FILE = Path("data/items.json")
 
+def load_items(items_file: Path | None = None) -> dict:
+    """Load the raw items mapping from items.json.
 
-def load_item_names(items_file: Path | None = None) -> dict:
-    """Load item names from items.json.
-
-    Args:
-        items_file: Optional path to items.json file (uses default if None)
-
-    Returns:
-        dict: Dictionary mapping item IDs to item names
+    Returns the raw mapping of item_id -> {"name": ..., "category": ...}.
     """
     file_path = items_file or ITEMS_FILE
     return load_json_data(file_path, key="items")
@@ -37,9 +32,10 @@ def load_all_market_data(data_dir: Path | None = None, items_file: Path | None =
     """
     all_data = []
     market_dir = data_dir or DATA_DIR
-    item_names = load_item_names(items_file)
+    items_map = load_items(items_file)
 
-    for item_id, item_name in item_names.items():
+    for item_id, item_info in items_map.items():
+        item_name = item_info["name"]
         csv_path = market_dir / f"item_{item_id}_{item_name}_last_30d.csv"
         if not csv_path.exists():
             warnings.warn(

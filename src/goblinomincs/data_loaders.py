@@ -19,6 +19,10 @@ def load_json_data(file_path: Path, key: str | None = None) -> dict | list:
         json.JSONDecodeError: If the file contains invalid JSON
         KeyError: If the specified key doesn't exist in the JSON
     """
-    with file_path.open(encoding="utf-8") as f:
-        data = json.load(f)
-    return data[key] if key else data
+    with file_path.open(encoding="utf-8") as file_obj:
+        json_data = json.load(file_obj)
+
+    if not key:
+        return json_data
+
+    return json_data[key]

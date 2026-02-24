@@ -18,6 +18,7 @@ Future roadmap includes optional **local LLM (Ollama)** integrations for natural
 - Use **`pandas`** for data manipulation and time-series work.
 - Use **`rich`** for terminal tables, prompts, and panels (interactive CLI lives in `cli.py`).
 - All scripts should remain runnable via **uv** (`uv run …`).
+- ALWAYS use descriptive variable/function names and add docstrings for public functions.
 
 ## Key Modules & Data
 
@@ -79,7 +80,6 @@ When generating code or suggestions:
 - Encourage structured return values (dicts/lists) that feed into tabular display.
 - When touching data paths, rely on `Path` and keep everything workspace-relative.
 - For tests, add **pytest** cases under `tests/` and rely on fixtures/helpers where useful.
-- For AI extensions, recommend **LangChain + Ollama** or other local-only approaches.
 
 ## Quality Assurance Workflow
 
@@ -103,18 +103,8 @@ When generating code or suggestions:
 
 3. **Update README.md** if needed:
    - Check if changes affect user-facing features, commands, or configuration
-   - Update relevant sections (Features, Usage, Project Structure, Recent Improvements)
-   - Update test counts if tests were added/removed
-   - Update code examples if APIs changed
    - Run `uv run ruff check README.md` to verify formatting
 
-**When to update README.md:**
-- New features or commands added
-- CLI interface changes
-- New dependencies or requirements
-- Test suite changes (count, organization, coverage)
-- Configuration file changes (pytest.ini, pyproject.toml)
-- Breaking changes or deprecations
 
 ## CLI Expectations
 
@@ -122,26 +112,9 @@ When generating code or suggestions:
 - If adding new menu options, follow the current Rich panel + prompt pattern.
 - No Typer commands are currently exposed; keep CLI lightweight unless requirements change.
 
-## Suggested Enhancements (Roadmap)
-
-- Hour-of-day analysis for optimal trading windows.
-- Volatility/risk scores based on rolling standard deviation.
-- Supply pressure indicators using the `available` column.
-- AH fee-adjusted profit calculations and break-even prices.
-- Watchlists, alerts, and export capabilities.
-
-Use these only as inspiration; confirm with the user before building sizable new features.
-
 ## Don’ts
 
 - Don’t introduce heavy web frameworks or GUIs—this remains a CLI/data tool.
 - Don’t assume external network access unless explicitly requested.
 - Don’t hardcode absolute paths or server-specific details; keep Ambershire as default unless instructed.
 - Don’t duplicate logic already encapsulated in `market_data.py` or `recipe_analysis.py`.
-
-## Notes
-
-- `fetch_auction_data.py` handles data collection from wow-auctions.net.
-- `pytest.ini` configures pytest; run tests via `uv run pytest`.
-- Keep vendor item handling centralized in `vendor_items.py` and recipe profit logic in `recipe_analysis.py`.
-- Future AI layers should leverage existing analytics instead of recomputing raw statistics.

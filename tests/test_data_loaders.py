@@ -16,9 +16,12 @@ def test_load_json_data_with_key():
     assert isinstance(result, dict)
     assert len(result) > 0
     # Check it's the items dict, not the full structure
-    for item_id, item_name in result.items():
+    for item_id, item_obj in result.items():
         assert isinstance(item_id, str)
-        assert isinstance(item_name, str)
+        # New format: item value is an object with a `name` field
+        assert isinstance(item_obj, dict)
+        assert "name" in item_obj
+        assert isinstance(item_obj["name"], str)
 
 
 @pytest.mark.integration

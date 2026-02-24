@@ -4,38 +4,31 @@ from pathlib import Path
 
 import pytest
 
-from goblinomincs.market_data import load_item_names
+from goblinomincs.market_data import load_items
 
 
 @pytest.mark.integration
-def test_load_item_names():
-    """Test that items.json loads correctly."""
-    items = load_item_names()
+def test_load_items():
+    """Test that items.json loads the raw items mapping correctly."""
+    items_map = load_items()
 
-    # Check that it returns a dictionary
-    assert isinstance(items, dict)
+    assert isinstance(items_map, dict)
+    assert len(items_map) > 0
 
-    # Check that it's not empty
-    assert len(items) > 0
-
-    # Check that keys are strings (item IDs)
-    for item_id in items:
+    for item_id, item_info in items_map.items():
         assert isinstance(item_id, str)
-
-    # Check that values are strings (item names)
-    for item_name in items.values():
-        assert isinstance(item_name, str)
-        assert len(item_name) > 0
+        assert isinstance(item_info, dict)
+        assert "name" in item_info and isinstance(item_info["name"], str)
+        assert "category" in item_info and isinstance(item_info["category"], str)
 
 
 @pytest.mark.integration
-def test_load_item_names_with_custom_path(items_file):
+def test_load_items_with_custom_path(items_file):
     """Test that items.json loads with custom path parameter."""
-    # Use explicit path
-    items = load_item_names(items_file=items_file)
+    items_map = load_items(items_file=items_file)
 
-    assert isinstance(items, dict)
-    assert len(items) > 0
+    assert isinstance(items_map, dict)
+    assert len(items_map) > 0
 
 
 @pytest.mark.integration
@@ -44,4 +37,20 @@ def test_market_data_directory_exists():
     data_dir = Path("data/market_data/ambershire")
     assert data_dir.exists(), "Market data directory not found"
     assert data_dir.is_dir(), "Market data path is not a directory"
+
+
+@pytest.mark.integration
+@pytest.mark.integration
+def test_item_categories_present():
+    """Verify categories exist for items in the mapping."""
+    items_map = load_items()
+    for item_id, item_info in items_map.items():
+        assert "category" in item_info and isinstance(item_info["category"], str)
+
+
+@pytest.mark.integration
+def test_item_categories_with_custom_path(items_file):
+    items_map = load_items(items_file=items_file)
+    assert isinstance(items_map, dict)
+    assert len(items_map) > 0
 

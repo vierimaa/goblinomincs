@@ -11,33 +11,48 @@ from goblinomincs.analyze_market_data import (
     show_profitable_crafts,
     show_recipes_by_source,
 )
-from goblinomincs.market_data import load_all_market_data, load_item_names
+from goblinomincs.market_data import load_all_market_data, load_items
 
 console = Console()
 
 
-def build_market_summary_table(df, items: dict) -> Table:
-    """Build market summary table (reusable across views).
+def build_market_summary_table(df, items: dict) -> dict:
+    """Build market summary tables split by item category.
 
     Args:
         df: DataFrame with all market data
-        items: Dictionary mapping item IDs to item names
+        items: Dictionary mapping item IDs to nested objects:
+            {id: {"name": ..., "category": ...}}
 
     Returns:
-        Table: Rich table with market summary data
+        dict: Mapping category -> Rich Table with market summary rows
     """
-    table = Table(title="Auction House Market Summary - Last 30 Days (Ambershire)")
-    table.add_column("Item", justify="left")
-    table.add_column("Latest Price", justify="left")
-    table.add_column("Avg (30d)", justify="right")
-    table.add_column("Avg (7d)", justify="right")
-    table.add_column("7d vs 30d", justify="right")
-    table.add_column("Best Buy", justify="right")
-    table.add_column("Best Sell", justify="right")
-    table.add_column("Gold Profit", justify="right")
-    table.add_column("Flip Profit", justify="right")
+    # Prepare tables per category
+    category_tables: dict[str, Table] = {}
 
-    for _item_id, item_name in items.items():
+    def ensure_table_for_category(category: str) -> Table:
+        if category not in category_tables:
+            table = Table(title=f"Auction House Market Summary - {category} - Last 30 Days (Ambershire)")
+            table.add_column("Item", justify="left")
+            table.add_column("Latest Price", justify="left")
+            table.add_column("Avg (30d)", justify="right")
+            table.add_column("Avg (7d)", justify="right")
+            table.add_column("7d vs 30d", justify="right")
+            table.add_column("Best Buy", justify="right")
+            table.add_column("Best Sell", justify="right")
+            table.add_column("Gold Profit", justify="right")
+            table.add_column("Flip Profit", justify="right")
+            category_tables[category] = table
+        return category_tables[category]
+
+    # Collect all rows grouped by category, then sort by item name before adding
+    category_rows: dict[str, list] = {}
+
+    for item_info in items.values():
+        # Expect item_info to be a dict with `name` and `category` keys
+        item_name = item_info["name"]
+        item_category = item_info["category"]
+
         stats = analyze_item(df, item_name)
         if not stats:
             continue
@@ -58,7 +73,7 @@ def build_market_summary_table(df, items: dict) -> Table:
             "green" if gold_profit > 1 else "yellow" if gold_profit > 0.5 else "white"
         )
 
-        table.add_row(
+        row = (
             stats["item_name"],
             f"{stats['latest_price']:.2f}g",
             f"{stats['avg_30d']:.2f}g",
@@ -69,8 +84,14 @@ def build_market_summary_table(df, items: dict) -> Table:
             f"[{gold_color}]{gold_profit:+.2f}g[/{gold_color}]",
             f"[{flip_color}]{stats['flip_profit']:+.1f}%[/{flip_color}]",
         )
+        category_rows.setdefault(item_category, []).append(row)
 
-    return table
+    for category, rows in category_rows.items():
+        table = ensure_table_for_category(category)
+        for row in sorted(rows):
+            table.add_row(*row)
+
+    return {category: category_tables[category] for category in sorted(category_tables)}
 
 
 def interactive_menu():
@@ -79,7 +100,9 @@ def interactive_menu():
     console.print("\n[bold cyan]Goblinomincs - Market Analysis Tool[/bold cyan]")
     console.print("[cyan]Loading market data...[/cyan]")
     df = load_all_market_data()
-    items = load_item_names()
+    items_map = load_items()
+    # name-only mapping for other functions
+    items = {item_id: item_info["name"] for item_id, item_info in items_map.items()}
     console.print("[green]Data loaded successfully![/green]\n")
 
     while True:
@@ -105,9 +128,11 @@ def interactive_menu():
         console.print()  # Add spacing
 
         if choice == "1":
-            # Market Summary
-            table = build_market_summary_table(df, items)
-            console.print(table)
+                # Market Summary (split by category)
+                category_tables = build_market_summary_table(df, items_map)
+                for category, table in category_tables.items():
+                    console.print(Panel(f"[bold]{category}[/bold]", title=None, border_style="cyan"))
+                    console.print(table)
 
         elif choice == "2":
             # Buy/Sell Opportunities
@@ -139,8 +164,10 @@ def interactive_menu():
 
             # Market summary
             console.print("\n")
-            table = build_market_summary_table(df, items)
-            console.print(table)
+            category_tables = build_market_summary_table(df, items_map)
+            for category, table in category_tables.items():
+                console.print(Panel(f"[bold]{category}[/bold]", title=None, border_style="cyan"))
+                console.print(table)
 
         elif choice == "6":
             # Exit
