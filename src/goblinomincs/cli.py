@@ -17,14 +17,41 @@ console = Console()
 
 def interactive_menu():
     """Run an interactive menu that lets users choose analysis views."""
-    # Load data once at startup
     console.print("\n[bold cyan]Goblinomincs - Market Analysis Tool[/bold cyan]")
     console.print("[cyan]Loading market data...[/cyan]")
-    df = load_all_market_data()
-    items_map = load_items()
-    # name-only mapping for other functions
+
+    try:
+        items_map = load_items()
+    except FileNotFoundError as e:
+        console.print(f"[red]Error:[/red] Required file not found: {e.filename}")
+        console.print("[yellow]Please ensure data/items.json exists.[/yellow]")
+        return
+    except KeyError as e:
+        console.print(f"[red]Error:[/red] Missing expected key in items.json: {e}")
+        console.print(
+            "[yellow]Please check that items.json has an 'items' key.[/yellow]"
+        )
+        return
+    except Exception as e:
+        console.print(f"[red]Error:[/red] Failed to load items: {e}")
+        return
+
+    try:
+        df = load_all_market_data()
+    except FileNotFoundError:
+        console.print("[red]Error:[/red] No market data found.")
+        console.print(
+            "[yellow]Please run 'uv run fetch-auction-data' to download market data first.[/yellow]"
+        )
+        return
+    except Exception as e:
+        console.print(f"[red]Error:[/red] Failed to load market data: {e}")
+        return
+
     items = {item_id: item_info["name"] for item_id, item_info in items_map.items()}
     console.print("[green]Data loaded successfully![/green]\n")
+
+    min_profit_value = 5.0
 
     while True:
         # Display menu
@@ -49,15 +76,20 @@ def interactive_menu():
         console.print()  # Add spacing
 
         if choice == "1":
-            # Market Summary (split by category)
-            show_market_summary(df, items_map)
+            try:
+                show_market_summary(df, items_map)
+            except Exception as e:
+                console.print(f"[red]Error displaying market summary: {e}[/red]")
 
         elif choice == "2":
-            # Buy/Sell Opportunities
-            show_buy_sell_now_opportunities(df, items)
+            try:
+                show_buy_sell_now_opportunities(df, items)
+            except Exception as e:
+                console.print(
+                    f"[red]Error displaying buy/sell opportunities: {e}[/red]"
+                )
 
         elif choice == "3":
-            # Profitable Crafts
             min_profit = Prompt.ask(
                 "[cyan]Minimum profit % to show[/cyan]",
                 default="5.0",
@@ -65,23 +97,41 @@ def interactive_menu():
             try:
                 min_profit_value = float(min_profit)
             except ValueError:
-                min_profit_value = 5.0
                 console.print("[yellow]Invalid input, using default (5%)[/yellow]")
 
-            show_profitable_crafts(df, min_profit_pct=min_profit_value)
+            try:
+                show_profitable_crafts(df, min_profit_pct=min_profit_value)
+            except Exception as e:
+                console.print(f"[red]Error displaying profitable crafts: {e}[/red]")
 
         elif choice == "4":
-            # Recipes by Profession
-            show_recipes_by_source(df)
+            try:
+                show_recipes_by_source(df)
+            except Exception as e:
+                console.print(f"[red]Error displaying recipes: {e}[/red]")
 
         elif choice == "5":
-            # Show all views
-            show_buy_sell_now_opportunities(df, items)
-            show_profitable_crafts(df, min_profit_pct=5.0)
-            show_recipes_by_source(df)
+            try:
+                show_buy_sell_now_opportunities(df, items)
+            except Exception as e:
+                console.print(
+                    f"[red]Error displaying buy/sell opportunities: {e}[/red]"
+                )
 
-            # Market summary
-            show_market_summary(df, items_map)
+            try:
+                show_profitable_crafts(df, min_profit_pct=5.0)
+            except Exception as e:
+                console.print(f"[red]Error displaying profitable crafts: {e}[/red]")
+
+            try:
+                show_recipes_by_source(df)
+            except Exception as e:
+                console.print(f"[red]Error displaying recipes: {e}[/red]")
+
+            try:
+                show_market_summary(df, items_map)
+            except Exception as e:
+                console.print(f"[red]Error displaying market summary: {e}[/red]")
 
         elif choice == "6":
             # Exit

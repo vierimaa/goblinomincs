@@ -48,7 +48,7 @@ def display_buy_sell_opportunities(
     buy_table.add_column("% Off", justify="right", style="green")
     buy_table.add_column("Last Updated", justify="right", style="dim")
 
-    for opp in buy_opportunities[:max_display]:
+    for opp in sorted(buy_opportunities, key=lambda x: x["item_name"])[:max_display]:
         buy_table.add_row(
             opp["item_name"],
             f"{opp['current_price']:.2f}g",
@@ -75,7 +75,7 @@ def display_buy_sell_opportunities(
     sell_table.add_column("% Premium", justify="right", style="yellow")
     sell_table.add_column("Last Updated", justify="right", style="dim")
 
-    for opp in sell_opportunities[:max_display]:
+    for opp in sorted(sell_opportunities, key=lambda x: x["item_name"])[:max_display]:
         sell_table.add_row(
             opp["item_name"],
             f"{opp['current_price']:.2f}g",
@@ -139,7 +139,7 @@ def display_profitable_crafts(
     craft_table.add_column("Profit", justify="right")
     craft_table.add_column("ROI", justify="right", style="yellow")
 
-    for craft in profitable[:max_display]:
+    for craft in sorted(profitable, key=lambda x: x["recipe_name"])[:max_display]:
         profit_color = (
             "green"
             if craft["profit"] > 1
@@ -248,11 +248,13 @@ def display_recipes_by_source(
         table.add_column("ROI %", justify="right")
         table.add_column("Status", justify="center")
 
-        for analysis in source_recipes:
+        for analysis in sorted(source_recipes, key=lambda x: x["recipe_name"]):
             if analysis["current_price"] is None:
                 table.add_row(
                     analysis["recipe_name"],
-                    f"{analysis['total_cost']:.2f}g" if analysis["total_cost"] > 0 else "N/A",
+                    f"{analysis['total_cost']:.2f}g"
+                    if analysis["total_cost"] > 0
+                    else "N/A",
                     "[dim]No data[/dim]",
                     "—",
                     "—",
@@ -418,5 +420,7 @@ def show_market_summary(
     console_to_use = console_inst or console
     category_tables = get_market_summary_tables(df, items)
     for category, table in category_tables.items():
-        console_to_use.print(Panel(f"[bold]{category}[/bold]", title=None, border_style="cyan"))
+        console_to_use.print(
+            Panel(f"[bold]{category}[/bold]", title=None, border_style="cyan")
+        )
         console_to_use.print(table)

@@ -26,7 +26,9 @@ def load_items(items_file: Path | None = None) -> dict:
     return load_json_data(file_path, key="items")
 
 
-def load_all_market_data(data_dir: Path | None = None, items_file: Path | None = None) -> pd.DataFrame:
+def load_all_market_data(
+    data_dir: Path | None = None, items_file: Path | None = None
+) -> pd.DataFrame:
     """Combine all CSVs in the market data folder into one DataFrame.
 
     Args:

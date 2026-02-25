@@ -38,6 +38,7 @@ build-backend = "setuptools.build_meta"
 # Target Python 3.10+
 target-version = "py310"
 line-length = 88
+exclude = ["uv.lock"]
 
 # Source code directories
 src = ["src", "tests"]

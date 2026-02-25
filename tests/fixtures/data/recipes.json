@@ -1,0 +1,14 @@
+{
+  "recipes": [
+    {
+      "id": 2459,
+      "source": "Alchemy",
+      "name": "Swiftness Potion",
+      "reagents": [
+        { "id": 2452, "name": "Swiftthistle", "quantity": 1 },
+        { "id": 2450, "name": "Briarthorn", "quantity": 1 },
+        { "id": 3372, "name": "Leaded Vial", "quantity": 1 }
+      ]
+    }
+  ]
+}

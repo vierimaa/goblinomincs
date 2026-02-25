@@ -39,7 +39,9 @@ def test_main_reads_nested_item_schema(tmp_path):
 
     with (
         patch("goblinomincs.fetcher.should_fetch_item", return_value=True),
-        patch("goblinomincs.fetcher.fetch_and_save_item", side_effect=fake_fetch_and_save),
+        patch(
+            "goblinomincs.fetcher.fetch_and_save_item", side_effect=fake_fetch_and_save
+        ),
     ):
         main(items_file=items_file)
 

@@ -67,6 +67,10 @@ def sample_item_data():
 @pytest.fixture
 def test_data_dir():
     """Return path to test data directory."""
+    fixtures_dir = Path("tests/fixtures/data")
+    if fixtures_dir.exists():
+        return fixtures_dir
+
     return Path("data")
 
 

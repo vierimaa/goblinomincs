@@ -1,0 +1,15 @@
+# Lefthook configuration for goblinomincs
+# Install: lefthook install
+
+pre-commit:
+  commands:
+    lint:
+      run: uv run ruff check --exclude uv.lock .
+      include: '*.py'
+      stage_fixed: true
+    format:
+      run: uv run ruff format --exclude uv.lock --check .
+      include: '*.py'
+      stage_fixed: true
+    test:
+      run: uv run pytest --co -q
