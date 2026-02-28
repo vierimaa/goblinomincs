@@ -345,7 +345,7 @@ def get_market_summary_tables(df: pd.DataFrame, items: dict) -> dict[str, Table]
                 title=f"Auction House Market Summary - {category} - Last 30 Days (Ambershire)"
             )
             table.add_column("Item", justify="left")
-            table.add_column("Latest Price", justify="left")
+            table.add_column("Current Price", justify="left")
             table.add_column("Avg (30d)", justify="right")
             table.add_column("Avg (7d)", justify="right")
             table.add_column("7d vs 30d", justify="right")
@@ -419,6 +419,103 @@ def show_market_summary(
 
     console_to_use = console_inst or console
     category_tables = get_market_summary_tables(df, items)
+    for category, table in category_tables.items():
+        console_to_use.print(
+            Panel(f"[bold]{category}[/bold]", title=None, border_style="cyan")
+        )
+        console_to_use.print(table)
+
+
+# ---------------------------------------------------------------------------
+# Current Market
+# ---------------------------------------------------------------------------
+
+
+def get_current_market_tables(df: pd.DataFrame, items: dict) -> dict[str, Table]:
+    """Build Rich current market tables split by item category.
+
+    Shows current prices alongside 7-day and 30-day averages, and two
+    trend columns: current price vs 7-day average, and 7-day vs 30-day average.
+
+    Args:
+        df: DataFrame with all market data
+        items: Dictionary mapping item IDs to nested objects:
+            {id: {"name": ..., "category": ...}}
+
+    Returns:
+        dict: Mapping category -> Rich Table with current market rows,
+              sorted alphabetically by category
+    """
+    category_tables: dict[str, Table] = {}
+
+    def _ensure_table(category: str) -> Table:
+        if category not in category_tables:
+            table = Table(title=f"Current Market - {category} (Ambershire)")
+            table.add_column("Item", justify="left")
+            table.add_column("Current Price", justify="right")
+            table.add_column("7d Avg", justify="right")
+            table.add_column("30d Avg", justify="right")
+            table.add_column("Current vs 7d", justify="right")
+            table.add_column("7d vs 30d", justify="right")
+            category_tables[category] = table
+        return category_tables[category]
+
+    category_rows: dict[str, list] = {}
+
+    for item_info in items.values():
+        item_name = item_info["name"]
+        item_category = item_info["category"]
+
+        stats = analyze_item(df, item_name)
+        if not stats:
+            continue
+
+        current_vs_7d = (
+            ((stats["latest_price"] - stats["avg_7d"]) / stats["avg_7d"] * 100)
+            if stats["avg_7d"]
+            else 0.0
+        )
+
+        current_vs_7d_color = (
+            "green" if current_vs_7d < -5 else "red" if current_vs_7d > 5 else "white"
+        )
+        trend_color = (
+            "green" if stats["trend"] > 0 else "red" if stats["trend"] < 0 else "white"
+        )
+
+        row = (
+            stats["item_name"],
+            f"[{current_vs_7d_color}]{stats['latest_price']:.2f}g[/{current_vs_7d_color}]",
+            f"{stats['avg_7d']:.2f}g" if stats["avg_7d"] else "N/A",
+            f"{stats['avg_30d']:.2f}g",
+            f"[{current_vs_7d_color}]{current_vs_7d:+.2f}%[/{current_vs_7d_color}]",
+            f"[{trend_color}]{stats['trend']:+.2f}%[/{trend_color}]",
+        )
+        category_rows.setdefault(item_category, []).append(row)
+
+    for category, rows in category_rows.items():
+        table = _ensure_table(category)
+        for row in sorted(rows):
+            table.add_row(*row)
+
+    return {category: category_tables[category] for category in sorted(category_tables)}
+
+
+def show_current_market(
+    df: pd.DataFrame, items: dict, console_inst: Console | None = None
+) -> None:
+    """Display current market tables split by item category.
+
+    Args:
+        df: DataFrame with all market data
+        items: Dictionary mapping item IDs to nested objects:
+            {id: {"name": ..., "category": ...}}
+        console_inst: Optional Console instance (uses module console if None)
+    """
+    from rich.panel import Panel
+
+    console_to_use = console_inst or console
+    category_tables = get_current_market_tables(df, items)
     for category, table in category_tables.items():
         console_to_use.print(
             Panel(f"[bold]{category}[/bold]", title=None, border_style="cyan")

@@ -6,6 +6,7 @@ from rich.prompt import Prompt
 
 from goblinomincs.display import (
     show_buy_sell_now_opportunities,
+    show_current_market,
     show_market_summary,
     show_profitable_crafts,
     show_recipes_by_source,
@@ -57,11 +58,12 @@ def interactive_menu():
         # Display menu
         menu = Panel(
             "[1] Market Summary (30-day overview)\n"
-            "[2] Buy/Sell Opportunities (immediate actions)\n"
-            "[3] Profitable Crafts (recipe profitability)\n"
-            "[4] Recipes by Profession (all recipes organized by source)\n"
-            "[5] Show All Views\n"
-            "[6] Exit",
+            "[2] Current Market (prices vs averages)\n"
+            "[3] Buy/Sell Opportunities (immediate actions)\n"
+            "[4] Profitable Crafts (recipe profitability)\n"
+            "[5] Recipes by Profession (all recipes organized by source)\n"
+            "[6] Show All Views\n"
+            "[7] Exit",
             title="[bold cyan]Select Analysis View[/bold cyan]",
             border_style="cyan",
         )
@@ -69,7 +71,7 @@ def interactive_menu():
 
         choice = Prompt.ask(
             "[cyan]Enter your choice[/cyan]",
-            choices=["1", "2", "3", "4", "5", "6"],
+            choices=["1", "2", "3", "4", "5", "6", "7"],
             default="1",
         )
 
@@ -83,13 +85,19 @@ def interactive_menu():
 
         elif choice == "2":
             try:
+                show_current_market(df, items_map)
+            except Exception as e:
+                console.print(f"[red]Error displaying current market: {e}[/red]")
+
+        elif choice == "3":
+            try:
                 show_buy_sell_now_opportunities(df, items)
             except Exception as e:
                 console.print(
                     f"[red]Error displaying buy/sell opportunities: {e}[/red]"
                 )
 
-        elif choice == "3":
+        elif choice == "4":
             min_profit = Prompt.ask(
                 "[cyan]Minimum profit % to show[/cyan]",
                 default="5.0",
@@ -104,13 +112,18 @@ def interactive_menu():
             except Exception as e:
                 console.print(f"[red]Error displaying profitable crafts: {e}[/red]")
 
-        elif choice == "4":
+        elif choice == "5":
             try:
                 show_recipes_by_source(df)
             except Exception as e:
                 console.print(f"[red]Error displaying recipes: {e}[/red]")
 
-        elif choice == "5":
+        elif choice == "6":
+            try:
+                show_current_market(df, items_map)
+            except Exception as e:
+                console.print(f"[red]Error displaying current market: {e}[/red]")
+
             try:
                 show_buy_sell_now_opportunities(df, items)
             except Exception as e:
@@ -133,7 +146,7 @@ def interactive_menu():
             except Exception as e:
                 console.print(f"[red]Error displaying market summary: {e}[/red]")
 
-        elif choice == "6":
+        elif choice == "7":
             # Exit
             console.print(
                 "[cyan]Thanks for using Goblinomincs! Good luck with your gold making![/cyan]"
