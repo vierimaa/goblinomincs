@@ -44,8 +44,8 @@ def display_buy_sell_opportunities(
     buy_table.add_column("Item", justify="left", style="cyan")
     buy_table.add_column("Current Price", justify="right")
     buy_table.add_column("3-Day Avg", justify="right")
-    buy_table.add_column("Difference", justify="right")
-    buy_table.add_column("% Off", justify="right", style="green")
+    buy_table.add_column("Difference", justify="right", style="red")
+    buy_table.add_column("% Off", justify="right", style="red")
     buy_table.add_column("Last Updated", justify="right", style="dim")
 
     for opp in sorted(buy_opportunities, key=lambda x: x["item_name"])[:max_display]:
@@ -71,8 +71,8 @@ def display_buy_sell_opportunities(
     sell_table.add_column("Item", justify="left", style="cyan")
     sell_table.add_column("Current Price", justify="right")
     sell_table.add_column("3-Day Avg", justify="right")
-    sell_table.add_column("Difference", justify="right")
-    sell_table.add_column("% Premium", justify="right", style="yellow")
+    sell_table.add_column("Difference", justify="right", style="green")
+    sell_table.add_column("% Premium", justify="right", style="green")
     sell_table.add_column("Last Updated", justify="right", style="dim")
 
     for opp in sorted(sell_opportunities, key=lambda x: x["item_name"])[:max_display]:
@@ -477,7 +477,7 @@ def get_current_market_tables(df: pd.DataFrame, items: dict) -> dict[str, Table]
         )
 
         current_vs_7d_color = (
-            "green" if current_vs_7d < -5 else "red" if current_vs_7d > 5 else "white"
+            "green" if current_vs_7d > 5 else "red" if current_vs_7d < -5 else "white"
         )
         trend_color = (
             "green" if stats["trend"] > 0 else "red" if stats["trend"] < 0 else "white"
